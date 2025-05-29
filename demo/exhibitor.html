@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{config('constants.EVENT_NAME')}} - Proforma Invoice</title>
+    <style type="text/css">
+        /* CSS Reset (simplified for email) */
+        body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+        body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #f4f4f4; }
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4;">
+    <!-- Main Table -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+            <td align="center" style="background-color: #f4f4f4;">
+                <!--[if (gte mso 9)|(IE)]>
+                <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
+                <tr>
+                <td align="center" valign="top" width="600">
+                <![endif]-->
+                <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border: 1px solid #dddddd;">
+                    <!-- LOGO SECTION -->
+                    <tr>
+                        <td align="center" style="padding: 20px 0 10px 0;">
+                            <img src="{{config('constants.LOGO_URL')}}" alt="{{config('constants.EVENT_NAME')}}" width="200" style="display: block; font-family: Arial, sans-serif; color: #333333; font-size: 16px;" border="0">
+                        </td>
+                    </tr>
+
+                    <!-- BOOKING ID SECTION -->
+                    <tr>
+                        <td align="center" style="padding: 5px 30px 10px 30px; font-family: Arial, sans-serif; font-size: 16px; color: #555555;">
+                            <strong>Booking ID:</strong> {{$application->application_id}}
+                        </td>
+                    </tr>
+
+                    <!-- HERO SECTION / TITLE -->
+                    <tr>
+                        <td style="padding: 15px 30px 15px 30px; background-color: #4A0072; color: #ffffff;">
+                            <h1 style="margin: 0; font-family: Arial, sans-serif; font-size: 24px; font-weight: bold; text-align: center;">
+                                Proforma Invoice
+                            </h1>
+                        </td>
+                    </tr>
+
+                    <!-- CONTENT SECTION: GREETING -->
+                    <tr>
+                        <td style="padding: 20px 30px 10px 30px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;">
+                            <p style="margin: 0;">Dear {{$application->eventContact->salutation}} {{$application->eventContact->first_name}} {{$application->eventContact->last_name}} and the {{$application->company_name}} Team,</p>
+                            <p style="margin-top: 15px;">Thank you for your interest in exhibiting at the upcoming <strong>{{config('constants.EVENT_NAME')}}</strong>. Please find your Proforma Invoice for the stall booking below.</p>
+                        </td>
+                    </tr>
+
+                    <!-- BOOKING SUMMARY TABLE -->
+                    <tr>
+                        <td style="padding: 10px 30px;">
+                            <h2 style="font-family: Arial, sans-serif; color: #4A0072; font-size: 18px; margin-top: 0; margin-bottom: 10px;">Exhibitor & Stall Details</h2>
+                            <table border="0" cellpadding="5" cellspacing="0" width="100%" style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 14px; color: #555555;">
+                                <tr>
+                                    <td width="40%" style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Company Name</strong></td>
+                                    <td width="60%" style="border: 1px solid #dddddd; padding: 8px;">{{$application->company_name}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Contact Person</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">{{$application->eventContact->salutation}} {{$application->eventContact->first_name}} {{$application->eventContact->last_name}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Billing Email</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">{{$application->eventContact->email}} </td>
+                                </tr>
+                                {{-- <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Application For</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">Exhibition</td>
+                                </tr> --}}
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Sector</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">{{$application->sector->name}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Sub-Sector</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">{{$application->sub_sector}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Stall Category</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">{{$application->stall_category}}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Stall Size</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">{{$application->interested_sqm}} SQM</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Billing Address</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">{{ $application->address }} {{ $application->city_id }} {{ $application->state->name }}
+                                    - {{ $application->postal_code }} , {{ $application->country->name }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>GST Compliance</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">{{ $application->gst_compliance == 1 ? 'Yes' : 'No' }}
+                                    @if ($application->gst_compliance == 1 && $application->gst_no)
+                                        &nbsp;|&nbsp; <strong>GST No:</strong> {{ $application->gst_no }}
+                                    @endif</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;"><strong>Company PAN No.</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px;">{{$application->pan_no}}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- INVESTMENT DETAILS TABLE -->
+                    <tr>
+                        <td style="padding: 20px 30px 10px 30px;">
+                            <h2 style="font-family: Arial, sans-serif; color: #4A0072; font-size: 18px; margin-top: 0; margin-bottom: 10px;">Payment Information</h2>
+                            <table border="0" cellpadding="5" cellspacing="0" width="100%" style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 14px; color: #555555;">
+                                <tr>
+                                    <td width="70%" style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;">Stall Price (12 sqm x ₹13,000)</td>
+                                    <td width="30%" style="border: 1px solid #dddddd; padding: 8px; text-align: right;">INR 156,000</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;">GST (18%)</td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; text-align: right;">INR 28,080</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f9f9f9;">Processing Charge</td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; text-align: right;">INR 5,522</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; background-color: #f0e6f6; font-weight: bold;"><strong>Total Amount Payable</strong></td>
+                                    <td style="border: 1px solid #dddddd; padding: 8px; text-align: right; background-color: #f0e6f6; font-weight: bold;"><strong>INR 189,602</strong></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- PAYMENT INFORMATION & BUTTON -->
+                    <tr>
+                        <td style="padding: 20px 30px 20px 30px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;">
+                            <table border="0" cellspacing="0" cellpadding="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <table border="0" cellspacing="0" cellpadding="0">
+                                            <tr>
+                                                <td align="center" style="border-radius: 5px; background-color: #007bff;">
+                                                    <a href="[Link to Payment Portal]" target="_blank" style="font-size: 16px; font-family: Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 5px; padding: 12px 25px; border: 1px solid #007bff; display: inline-block; font-weight: bold;">
+                                                        CLICK HERE TO PAY NOW
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="margin-top: 20px; font-family: Arial, sans-serif; font-size: 14px; color: #555555;">
+                                Upon successful payment, a final tax invoice and booking confirmation will be sent to you.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- TERMS & CONDITIONS (Optional for Proforma, but good to include a link) -->
+                    <tr>
+                        <td style="padding: 10px 30px 10px 30px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333;">
+                            <p style="margin: 0;">For details on cancellation, booth allocation, and other exhibitor terms, please refer to our <a href="[Link to Terms and Conditions]" target="_blank" style="color: #007bff; text-decoration: underline;">Exhibitor Terms & Conditions</a>.</p>
+                        </td>
+                    </tr>
+
+
+                    <!-- SOCIAL MEDIA HANDLES -->
+                    <tr>
+                        <td style="padding: 20px 30px 10px 30px; background-color: #f0e6f6;">
+                            <h2 style="font-family: Arial, sans-serif; color: #4A0072; font-size: 18px; margin-top: 0; margin-bottom: 15px; text-align: center;">Stay Connected</h2>
+                            <p style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333; text-align: center; margin-bottom: 15px;">
+                                Follow us on our social media channels for the latest event updates.<br>
+                                Official Hashtag: <strong>#BengaluruTechSummit #[YEAR]</strong>
+                            </p>
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td align="center" style="font-family: Arial, sans-serif; font-size: 14px;">
+                                        <a href="#[LINK_HERE_LINKEDIN]" target="_blank" style="color: #0077b5; text-decoration: none; margin: 0 10px;">LinkedIn</a> |
+                                        <a href="#[LINK_HERE_TWITTER]" target="_blank" style="color: #1da1f2; text-decoration: none; margin: 0 10px;">Twitter</a> |
+                                        <a href="#[LINK_HERE_FACEBOOK]" target="_blank" style="color: #3b5998; text-decoration: none; margin: 0 10px;">Facebook</a> |
+                                        <a href="#[LINK_HERE_INSTAGRAM]" target="_blank" style="color: #e4405f; text-decoration: none; margin: 0 10px;">Instagram</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                     <!-- CLOSING -->
+                    <tr>
+                        <td style="padding: 20px 30px 10px 30px; font-family: Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333333;">
+                            <p style="margin: 0;">We look forward to your participation at the Bengaluru Tech Summit! Should you have any questions regarding this Proforma Invoice or the payment process, please do not hesitate to contact us.</p>
+                            <p style="margin-top: 15px;">Sincerely,</p>
+                            <p style="margin:0;"><strong>The Bengaluru Tech Summit Team</strong></p>
+                        </td>
+                    </tr>
+
+                    <!-- ORGANISER DETAILS -->
+                    <tr>
+                        <td style="padding: 20px 30px; background-color: #333333; color: #cccccc;">
+                            <h3 style="font-family: Arial, sans-serif; color: #ffffff; font-size: 16px; margin-top: 0; margin-bottom: 10px; text-align: center;">Organiser Details</h3>
+                            <p style="font-family: Arial, sans-serif; font-size: 13px; line-height: 1.5; margin: 5px 0; text-align: center;">
+                                <strong>[Name of Organising Body, e.g., Dept. of IT & BT, Govt. of Karnataka & STPI]</strong><br>
+                                [Organiser's Full Address]<br>
+                                GSTIN: [Organiser's GSTIN]<br>
+                                Website: <a href="[Event Website, e.g., www.bengalurutechsummit.com]" target="_blank" style="color: #87cefa; text-decoration: underline;">[Event Website]</a><br>
+                                Exhibitor Support Email: <a href="mailto:[Exhibitor Support Email Address]" style="color: #87cefa; text-decoration: underline;">[Exhibitor Support Email Address]</a><br>
+                                Exhibitor Support Phone: [Exhibitor Support Phone Number]
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="padding: 15px 30px; text-align: center; font-family: Arial, sans-serif; font-size: 12px; color: #888888;">
+                            This is a Proforma Invoice and not a tax invoice. A tax invoice will be issued upon receipt of payment.
+                            <br><br>
+                            © [Year] Bengaluru Tech Summit. All rights reserved.
+                        </td>
+                    </tr>
+
+                </table>
+                <!--[if (gte mso 9)|(IE)]>
+                </td>
+                </tr>
+                </table>
+                <![endif]-->
+            </td>
+        </tr>
+    </table>
+    <!-- End Main Table -->
+</body>
+</html>
