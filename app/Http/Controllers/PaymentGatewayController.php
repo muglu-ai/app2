@@ -273,9 +273,6 @@ class PaymentGatewayController extends Controller
 
             $exhibitionHandle = new ExhibitionController();
             $exhibitionHandle->handlePaymentSuccess($application_id);
-
-            print_r($exhibitionHandle->toArray());
-            die;
         }
 
         // if

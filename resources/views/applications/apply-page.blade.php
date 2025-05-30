@@ -110,19 +110,18 @@
                     <div class="card-header p-0 position-relative mt-n5 mx-3 z-index-2">
                         <div class="bg-gradient-dark shadow-dark border-radius-lg pt-4 pb-3">
                             <div class="multisteps-form__progress">
-                                <button class="multisteps-form__progress-btn js-active" disabled>
+                                {{-- <button class="multisteps-form__progress-btn js-active" disabled>
                                     <span>1. Show Profile</span>
-                                </button>
-                                <button class="multisteps-form__progress-btn js-active" disabled>2. Application
+                                </button> --}}
+                                <button class="multisteps-form__progress-btn js-active " disabled>1. Application
                                     Form
                                 </button>
-                                <button class="multisteps-form__progress-btn" disabled>3. Terms and
-                                    Conditions
+                                <button class="multisteps-form__progress-btn js-active" disabled>2. Review
                                 </button>
-                                <button class="multisteps-form__progress-btn" disabled>4. Review
+                                <button class="multisteps-form__progress-btn" disabled>3. Confirmation
                                 </button>
                             </div>
-                            <small class="progress-bar2 d-block text-center text-white">2. Product Info</small>
+                            <small class="progress-bar2 d-block text-center text-white">2. Review</small>
 
                         </div>
                     </div>

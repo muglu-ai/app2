@@ -54,25 +54,24 @@
             <div class="col-lg-12 col-md-12 col-12 col-sm-12 m-auto">
                 <div class="card mt-auto">
                     <div class="card-header p-0 position-relative mt-5 mx-3 z-index-2">
-                        <div class="bg-gradient-dark shadow-dark border-radius-lg pt-4 pb-3">
+                        <div class="bg-gradient-dark shadow-dark border-radius-lg pt-3 pb-3">
                             <div class="multisteps-form__progress">
-                                <button class="multisteps-form__progress-btn js-active" disabled>
+                                {{-- <button class="multisteps-form__progress-btn js-active" disabled>
                                     <span>1. Show Profile</span>
-                                </button>
-                                <button class="multisteps-form__progress-btn" disabled>2. Application
+                                </button> --}}
+                                <button class="multisteps-form__progress-btn js-active" disabled>1. Application
                                     Form
                                 </button>
-                                <button class="multisteps-form__progress-btn" disabled>3. Terms and
-                                    Conditions
+                                <button class="multisteps-form__progress-btn" disabled>2. Review
                                 </button>
-                                <button class="multisteps-form__progress-btn" disabled>4. Review
+                                <button class="multisteps-form__progress-btn" disabled>3. Status
                                 </button>
                             </div>
-                            <small class="progress-bar2 d-block text-center text-white">1. Personal Info</small>
+                            <small class="progress-bar2 d-block text-center text-white">1. Exhibitor Details</small>
                         </div>
                     </div>
 
-                    <div class="card-body" id="card-body" style="height: 1990px !important;">
+                    <div class="card-body" id="card-body" style="height: 1700px !important;">
                         <form class="multisteps-form__form" id="step1" method="POST" enctype="multipart/form-data"
                             action="{{ route('application.exhibitor.submit') }}">
                             @csrf
@@ -89,8 +88,7 @@
                                     <div class="container">
                                         <div class="text-sm text-justify">
                                             <p> We request you to provide some information about your business to create
-                                                a show specific profile for your participation. This show profile is
-                                                limited to this specific event only.</p>
+                                                a show specific profile for your participation. </p>
                                         </div>
                                         <div class="row mt-3 ">
 
@@ -689,7 +687,7 @@
                                         </div>
 
 
-                                        
+
                                         {{-- <div class="row">
                                             <div class="col-12 ms-0">
                                                 <label class="mt-4 form-label red-label ">Type of Business: <small

@@ -37,8 +37,7 @@ class ExhibitionController extends Controller
                 $complimentaryDelegateCount += (int)$value;
             }
         }
-        $stallManningCount = $count['stallManningCount'];
-        $complimentaryDelegateCount = $count['complimentaryDelegateCount'];
+
 
         //add new entries in stall manning and complimentary delegate tables
         $exhibitionParticipant = ExhibitionParticipant::updateOrCreate(

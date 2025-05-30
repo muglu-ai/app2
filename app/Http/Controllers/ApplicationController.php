@@ -270,7 +270,7 @@ class ApplicationController extends Controller
             //            'certificate' => $gst_certificate,
             'company_email' => $request->company_email,
             'website' => $request->website,
-            'type_of_business' => implode(',', $request->type_of_business),
+            // 'type_of_business' => implode(',', $request->type_of_business),
             'payment_currency' => $payment_currency,
             'status' => 'initiated',
             'application_id' => $application->exists ? $application->application_id : $this->generateApplicationId(),
