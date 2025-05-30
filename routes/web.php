@@ -27,6 +27,7 @@ use App\Http\Controllers\PaymentGatewayController;
 //attendee controller
 use App\Http\Controllers\AttendeeController;
 use App\Http\Controllers\SponsorshipController;
+use App\Http\Controllers\TicketController;
 
 Route::get('/paymentPay/{id}', [ApplicationController::class, 'paymentPage'])->name('paymentPage');
 
@@ -226,8 +227,10 @@ Route::post('/get-states', [MisController::class, 'getStates'])->name('get.state
 // Route::get('/test', [AdminController::class, 'test'])->name('test');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/application-list/', [AdminController::class, 'index'])->name('application.lists')->middleware(Auth::class);;
-Route::get('/copy-application/', [AdminController::class, 'copy'])->name('application.copy')->middleware(Auth::class);;
+Route::get('/application-list/', [AdminController::class, 'index'])->name('application.lists')->middleware(Auth::class);
+;
+Route::get('/copy-application/', [AdminController::class, 'copy'])->name('application.copy')->middleware(Auth::class);
+;
 Route::get('/application-list/{status}', [AdminController::class, 'index'])->name('application.list')->middleware(Auth::class);
 Route::get('/application-detail', [DashboardController::class, 'applicantDetails'])->name('application.show.admin')->middleware(Auth::class);
 Route::get('/price', [AdminController::class, 'price'])->name('price')->middleware(Auth::class);
@@ -346,7 +349,8 @@ Route::get('review_sponsor', [SponsorController::class, 'review'])->name('review
 
 
 //Admin Sponsorship Route
-Route::get('/sponsorship-list/', [AdminController::class, 'sponsorApplicationList'])->name('sponsorship.lists')->middleware(Auth::class);;
+Route::get('/sponsorship-list/', [AdminController::class, 'sponsorApplicationList'])->name('sponsorship.lists')->middleware(Auth::class);
+;
 Route::get('/sponsorship-list/{status}', [AdminController::class, 'sponsorApplicationList'])->name('sponsorship.list')->middleware(Auth::class);
 
 //Invoices and Payments  routes
@@ -400,3 +404,4 @@ Route::post('/get-sqm-options', [ApplicationController::class, 'getSQMOptions'])
 
 //get country code from applicationController
 Route::post('/get-country-code', [ApplicationController::class, 'getCountryCode']);
+Route::resource('tickets', TicketController::class);
