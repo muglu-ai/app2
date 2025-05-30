@@ -39,10 +39,12 @@
 
                                     // Fetch the application with conditions
                                     $dashboard = App\Models\Application::hasApplication($userId, $eventId)
-                                        ->where('submission_status', 'approved')
+                                        ->where('submission_status', ['approved', 'submitted'])
                                         ->whereHas('invoice', function($query) {
-                                            $query->where('type', 'Stall Booking')->where('payment_status', 'Paid');
+                                            $query->where('type', 'Stall Booking')->where('payment_status', 'paid');
                                         })->first();
+
+                                    @dd($dashboard);
 
                                     // Check if any application exists
                                     $applicationExists = App\Models\Application::hasApplication($userId, $eventId)->exists();

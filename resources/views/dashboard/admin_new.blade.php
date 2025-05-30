@@ -406,29 +406,28 @@
                             <div class="list-group list-group-flush list-group-light">
                                 <div class="list-group-item d-flex justify-content-between px-0">
                                     <div class="me-2">Total Countries</div>
-                                    <div class="text-end"><strong>{{ $totalCountries }}</strong></div>
+                                    <div class="text-end"><strong>{{ $totalCountries ?? 0 }}</strong></div>
                                 </div>
                                 <div class="list-group-item d-flex justify-content-between px-0">
                                     <div class="me-2">Total Applications</div>
-                                    <div class="text-end"><strong>{{ $indiaInternationalStats->india_count + $indiaInternationalStats->international_count }}</strong></div>
+                                    <div class="text-end"><strong>{{ ($indiaInternationalStats->india_count ?? 0) + ($indiaInternationalStats->international_count ?? 0) }}</strong></div>
                                 </div>
                                 <div class="list-group-item d-flex justify-content-between px-0">
                                     <div class="caption font-monospace ">India</div>
                                     <div class="caption font-monospace  ms-2 text-end">
-                                        {{ $indiaInternationalStats->india_count }} /
-                                        {{ $indiaInternationalStats->india_sqm }} sqm</div>
+                                        {{ $indiaInternationalStats->india_count ?? 0 }} /
+                                        {{ $indiaInternationalStats->india_sqm ?? 0 }} sqm</div>
                                 </div>
                                 <div class="list-group-item d-flex justify-content-between px-0">
                                     <div class="caption font-monospace ">International</div>
                                     <div class="caption font-monospace  ms-2 text-end">
-                                        {{ $indiaInternationalStats->international_count }} /
-                                        {{ $indiaInternationalStats->international_sqm }} sqm</div>
+                                        {{ $indiaInternationalStats->international_count ?? 0 }} /
+                                        {{ $indiaInternationalStats->international_sqm ?? 0 }} sqm</div>
                                 </div>
 
-                                @php 
-                                $tots = $indiaInternationalStats->india_sqm + $indiaInternationalStats->international_sqm;
+                                @php
+                                $tots = ($indiaInternationalStats->india_sqm ?? 0) + ($indiaInternationalStats->international_sqm ?? 0);
                                 @endphp
-                                {{-- <p class="text-white">Total Countries with Submitted Applications: <strong>{{ $totalCountries }}</strong></p> --}}
 
                                 <div class="table-responsive">
                                     <table class="table">
@@ -440,17 +439,19 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach ($applicationsByCountry as $data)
-                                            @php 
-                                            $share = ($data->total_sqm / $tots) * 100;
-                                            $share = number_format($share, 2);
-                                            @endphp 
+                                            @forelse ($applicationsByCountry as $data)
+                                                @php
+                                                $share = $tots > 0 ? ($data->total_sqm / $tots) * 100 : 0;
+                                                $share = number_format($share, 2);
+                                                @endphp
                                                 <tr>
                                                     <td>{{ $data->country_name }}</td>
                                                     <td class="text-center">{{ $data->total_companies }}</td>
                                                     <td class="text-center">{{ $data->total_sqm }} / {{$share}} %</td>
                                                 </tr>
-                                            @endforeach
+                                            @empty
+                                                <tr><td colspan="3" class="text-center">No data available</td></tr>
+                                            @endforelse
                                         </tbody>
                                     </table>
                                 </div>
@@ -468,31 +469,31 @@
                             <div class="list-group list-group-flush list-group-light">
                                 <div class="list-group-item d-flex justify-content-between px-0">
                                     <div class="me-2">Total Countries</div>
-                                    <div class="text-end"><strong>{{ $totalApprovedCountries }}</strong></div>
+                                    <div class="text-end"><strong>{{ $totalApprovedCountries ?? 0 }}</strong></div>
                                 </div>
                                 <div class="list-group-item d-flex justify-content-between px-0">
                                     <div class="me-2">Total Application</div>
-                                    <div class="text-end"><strong>{{ $approvedIndiaInternationalStats->india_count + $approvedIndiaInternationalStats->international_count }}</strong></div>
+                                    <div class="text-end"><strong>{{ ($approvedIndiaInternationalStats->india_count ?? 0) + ($approvedIndiaInternationalStats->international_count ?? 0) }}</strong></div>
                                 </div>
                                 <div class="list-group-item d-flex justify-content-between px-0">
                                     <div class="caption font-monospace ">India</div>
                                     <div class="caption font-monospace  ms-2 text-end">
-                                        {{ $approvedIndiaInternationalStats->india_count }} /
-                                        {{ $approvedIndiaInternationalStats->india_sqm }} sqm
+                                        {{ $approvedIndiaInternationalStats->india_count ?? 0 }} /
+                                        {{ $approvedIndiaInternationalStats->india_sqm ?? 0 }} sqm
                                     </div>
                                 </div>
                                 <div class="list-group-item d-flex justify-content-between px-0">
                                     <div class="caption font-monospace ">International</div>
                                     <div class="caption font-monospace  ms-2 text-end">
-                                        {{ $approvedIndiaInternationalStats->international_count }} /
-                                        {{ $approvedIndiaInternationalStats->international_sqm }} sqm
+                                        {{ $approvedIndiaInternationalStats->international_count ?? 0 }} /
+                                        {{ $approvedIndiaInternationalStats->international_sqm ?? 0 }} sqm
                                     </div>
                                 </div>
 
                                 @php
-                                $app_tots = $approvedIndiaInternationalStats->india_sqm + $approvedIndiaInternationalStats->international_sqm;
+                                $app_tots = ($approvedIndiaInternationalStats->india_sqm ?? 0) + ($approvedIndiaInternationalStats->international_sqm ?? 0);
                                 @endphp
-                    
+
                                 <div class="table-responsive">
                                     <table class="table">
                                         <thead>
@@ -503,24 +504,26 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach ($approvedApplicationsByCountry as $data)
-                                            @php
-                                            $share = ($data->total_sqm / $app_tots) * 100;
-                                            $share = number_format($share, 2);
-                                            @endphp
+                                            @forelse ($approvedApplicationsByCountry as $data)
+                                                @php
+                                                $share = $app_tots > 0 ? ($data->total_sqm / $app_tots) * 100 : 0;
+                                                $share = number_format($share, 2);
+                                                @endphp
                                                 <tr>
                                                     <td>{{ $data->country_name }}</td>
                                                     <td class="text-center">{{ $data->total_companies }}</td>
                                                     <td class="text-center">{{ $data->total_sqm }} / {{$share }} %</td>
                                                 </tr>
-                                            @endforeach
+                                            @empty
+                                                <tr><td colspan="3" class="text-center">No data available</td></tr>
+                                            @endforelse
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
 
                 </div>
             </div>
