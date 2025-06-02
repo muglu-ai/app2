@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\ExhibitorInfoController;
 use Mews\Captcha\Facades\Captcha;
 
 use App\Http\Controllers\CoExhibitorController;
@@ -24,10 +23,15 @@ use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\ExtraRequirementController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\PaymentGatewayController;
+use App\Http\Controllers\ExhibitorInfoController;
 //attendee controller
 use App\Http\Controllers\AttendeeController;
 use App\Http\Controllers\SponsorshipController;
+
+
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\DelOrgDetailController;
+use App\Http\Controllers\DelPersonalDetailController;
 
 Route::get('/paymentPay/{id}', [ApplicationController::class, 'paymentPage'])->name('paymentPage');
 
@@ -404,4 +408,15 @@ Route::post('/get-sqm-options', [ApplicationController::class, 'getSQMOptions'])
 
 //get country code from applicationController
 Route::post('/get-country-code', [ApplicationController::class, 'getCountryCode']);
+
+
 Route::resource('tickets', TicketController::class);
+// Route::resource('organizations', DelOrgDetailController::class);
+Route::resource('delegates', DelPersonalDetailController::class);
+Route::get('organizations/{organization}/delegates', [DelOrgDetailController::class, 'showDelegates'])->name('organizations.delegates');
+// Route::get('/organizations/export', [DelOrgDetailController::class, 'export'])->name('organizations.export');
+// 1. Specific route must come first
+Route::get('/organizations/export', [DelOrgDetailController::class, 'export'])->name('organizations.export');
+
+// 2. Resource route comes after
+Route::resource('organizations', DelOrgDetailController::class);

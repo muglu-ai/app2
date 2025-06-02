@@ -213,10 +213,9 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ route('tickets.index') }}" class="nav-link text-dark" aria-controls="pagesExamples"
-                    role="button" aria-expanded="false">
-                    <i class="fa-solid fa-user-group"></i>
-                    <span class="nav-link-text ms-1 ps-1 text-dark">Delegates</span>
+                <a href="{{ route('organizations.index') }}" class="nav-link text-dark">
+                    <i class="fa-solid fa-building"></i>
+                    <span class="nav-link-text ms-1 ps-1 text-dark">Organizations</span>
                 </a>
             </li>
             <li class="nav-item">
