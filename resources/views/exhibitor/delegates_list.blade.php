@@ -9,6 +9,9 @@
     } elseif($slug == "Stall Manning") {
         $link = "stall_manning";
     }
+    else {
+        $link = $slug;
+    }
     @endphp
 
 
@@ -93,6 +96,7 @@
         });
     </script>
     @php
+    //dd($data);
         $extractedData = $data->map(function ($item) {
             return [
                 'first_name' => $item->first_name,
@@ -104,7 +108,7 @@
                 'token' => $item->token,
             ];
         });
-       // dd($extractedData);
+      // dd($extractedData);
     @endphp
     <div class="container-fluid py-2">
         <div class="row mt-4">
@@ -125,6 +129,8 @@
                                         {{ $count['complimentary_delegate_count'] ?? 0 }}
                                     @elseif($slug == 'Stall Manning')
                                         {{ $count['stall_manning_count'] ?? 0 }}
+                                        @else
+                                        {{ $count ?? 0 }}
                                     @endif
 
                                 </span>
@@ -133,6 +139,9 @@
                                         {{ $used['complimentary_delegates'] ?? 0 }}
                                     @elseif($slug == 'Stall Manning')
                                         {{ $used['stall_manning'] ?? 0 }}
+                                        @else
+                                        {{ $used ?? 0 }}
+
                                     @endif</span>
                             </div>
                             <div class="text-end">
@@ -151,7 +160,7 @@
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" data-sort="created_at">Mobile No</th>
 {{--                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status </th>--}}
                             </tr>
-                            </thead>        
+                            </thead>
                             <tbody>
                             @foreach($extractedData as $item)
                                 <tr>
@@ -190,6 +199,11 @@
         @php
             $input_type = "exhibitor";
             $input_type2 = "exhibitor";
+        @endphp
+    @else
+        @php
+            $input_type = $ticket_id;
+            $input_type2 = $ticket_id;
         @endphp
     @endif
 

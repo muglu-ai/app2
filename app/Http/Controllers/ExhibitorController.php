@@ -41,6 +41,10 @@ class ExhibitorController extends Controller
 
         $application_id = $application->id;
 
+        // Check if the application who has different ticket types stored in the exhibition_participant_passes table
+
+
+
 
 
         //$exhibitionParticipantCount = $application->exhibitionParticipant()->count();
@@ -67,6 +71,9 @@ class ExhibitorController extends Controller
             ->where('exhibition_participant_id', $count['exhibition_participant_id'])
             ->count();
 
+        // count of different ticket types in exhibition_participant_passes
+
+
         return [
             'complimentary_delegates' => $complimentaryDelegates,
             'stall_manning' => $stallManning,
@@ -80,191 +87,155 @@ class ExhibitorController extends Controller
         $this->__Construct();
         $count = $this->checkCount();
 
-        //get the user application id
         $application = Application::where('user_id', auth()->user()->id)
             ->whereIn('submission_status', ['approved', 'submitted'])
             ->whereHas('invoice', function ($query) {
                 $query->where('type', 'Stall Booking')->where('payment_status', 'paid');
             })->first();
 
-        //if no application then redirect to /dashboard
         if (!$application) {
             return redirect('/dashboard');
         }
 
+        $sortField = $request->input('sort', 'first_name');
+        $sortDirection = $request->input('direction', 'asc');
+        $perPage = $request->input('per_page', 10);
 
-        $sortField = $request->input('sort', 'first_name'); // Default sort by 'name'
-        $sortDirection = $request->input('direction', 'asc'); // Default sort 'asc'
-        $perPage = $request->input('per_page', 10); // Default 10 items per page
+        // Normalize type for DB queries (spaces, case, etc.)
+        $type = urldecode($type);
+        $ticket_id = null;
 
+        $count = $this->checkCount();
+        $used = $this->usedcount();
 
-        if ($type == 'complimentary') {
+        if ($type === 'complimentary') {
             $slug = 'Complimentary Delegates';
             $data = DB::table('complimentary_delegates')
                 ->where('exhibition_participant_id', $this->checkCount()['exhibition_participant_id'])
                 ->orderBy($sortField, $sortDirection)
                 ->paginate($perPage);
-        } elseif ($type == 'stall_manning') {
+        } elseif ($type === 'stall_manning') {
             $slug = 'Stall Manning';
             $data = DB::table('stall_manning')
                 ->where('exhibition_participant_id', $this->checkCount()['exhibition_participant_id'])
                 ->orderBy($sortField, $sortDirection)
                 ->paginate($perPage);
         } else {
-            return response()->json(['error' => 'Invalid type'], 400);
+
+            // Try to match ticket_type in exhibition_participant_passes -> ticket_categories
+            $participant = $application->exhibitionParticipant;
+            if (!$participant) {
+                return response()->json(['error' => 'No participant found'], 404);
+            }
+            $ticketCategory = DB::table('ticket_categories')->where('ticket_type', $type)->first();
+            if (!$ticketCategory) {
+                return response()->json(['error' => 'Invalid type'], 400);
+            }
+            $pass = DB::table('exhibition_participant_passes')
+                ->where('participant_id', $participant->id)
+                ->where('ticket_category_id', $ticketCategory->id)
+                ->first();
+            if (!$pass) {
+                return response()->json(['error' => 'No passes found for this category'], 404);
+            }
+
+            // Store allocated and used counts for this badge category
+            $count = $pass->count ?? $pass->badge_count ?? 0;
+            $used = DB::table('complimentary_delegates')
+                ->where('exhibition_participant_id', $participant->id)
+                ->where('ticket_category_id', $ticketCategory->id)
+                ->count();
+
+            // Fetch all complimentary_delegates with this participant and ticket_category_id
+            $delegates = DB::table('complimentary_delegates')
+                ->where('exhibition_participant_id', $participant->id)
+                ->where('ticket_category_id', $ticketCategory->id)
+                ->orderBy($sortField, $sortDirection)
+                ->paginate($perPage);
+
+
+            $slug = $type . ' Attendees';
+            $data = $delegates;
+            $ticket_id = $ticketCategory->id;
         }
 
-        // Check if it's an API request
         if ($request->wantsJson()) {
             return response()->json($data);
         }
-        $count = $this->checkCount();
-        $used = $this->usedcount();
 
+        // dd($count, $used);
 
-        return view('exhibitor.delegates_list', compact('data', 'slug', 'count', 'used'));
+        return view(
+            'exhibitor.delegates_list',
+            compact(
+                'data',
+                'slug',
+                'count',
+                'used',
+                'ticket_id',
+            )
+        );
     }
 
 
     //invite delegates to the event
-    public function invite2(Request $request)
-    {
-        $this->__Construct();
-        Log::info($request->all());
-
-        $validatedData = $request->validate([
-            'invite_type' => 'required|in:delegate,exhibitor',
-            'email' => 'required|email|unique:complimentary_delegates|unique:stall_manning',
-        ]);
-        // check the count of complimentary_delegates or stall_manning table from exhibition_participants table
-        //how many of registered delegates or exhibitors are there and it should not exceed the count of complimentary_delegate_count or stall_manning_count
-        $count = $this->checkCount();
-
-        //get the count of complimentary_delegates or stall_manning table from exhibition_participants table and
-        //check how many has same exhibition_participant_id
-
-        //if invite_type is delegate
-        if ($request->invite_type == 'delegate') {
-            $countComplimentaryDelegates = DB::table('complimentary_delegates')
-                ->where('exhibition_participant_id', $count['exhibition_participant_id'])
-                ->count();
-
-            if ($countComplimentaryDelegates >= $count['complimentary_delegate_count']) {
-                return redirect()->back()->with('error', 'You have reached the maximum limit of complimentary delegates');
-            } else {
-                // insert into complimentary_delegates table with email id and exhibition_participant_id also
-                // generate a unique token through which the invitee can fill out the information
-                $token = Str::random(32);
-                DB::table('complimentary_delegates')->insert([
-                    'email' => $request->email,
-                    'exhibition_participant_id' => $count['exhibition_participant_id'],
-                    'token' => $token,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-                // generate a unique token through which the invitee can fill out the information
-                //Mail::to($request->email)->send(new InviteMail($token));
-                return response()->json(['message' => 'Invitation sent successfully!']);
-            }
-        }
-        if ($request->invite_type == 'exhibitor') {
-            $countStallManning = DB::table('stall_manning')
-                ->where('exhibition_participant_id', $count['application'])
-                ->count();
-
-            if ($countStallManning >= $count['stall_manning_count']) {
-                return redirect()->back()->with('error', 'You have reached the maximum limit of stall manning');
-            } else {
-                // insert into stall_manning table with email id and exhibition_participant_id also
-                // generate a unique token through which the invitee can fill out the information
-                // insert into stall_manning table with email id and exhibition_participant_id also
-                $token = Str::random(32);
-                DB::table('stall_manning')->insert([
-                    'email' => $request->email,
-                    'exhibition_participant_id' => $count['application'],
-                    'token' => $token,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-
-
-                // generate a unique token through which the invitee can fill out the information
-                //Mail::to($request->email)->send(new InviteMail($token));
-
-                return response()->json(['message' => 'Invitation sent successfully!']);
-            }
-        }
-    }
-
     public function invite(Request $request)
     {
 
         try {
-
             // Validate request and return JSON error messages
             $validatedData = $request->validate([
-                'invite_type' => 'required|in:delegate,exhibitor',
+                'invite_type' => 'required',
                 'email' => 'required|email|unique:complimentary_delegates|unique:stall_manning',
             ]);
 
-            // Fetch counts
             $count = $this->checkCount();
             $participantId = $count['exhibition_participant_id'];
+            $inviteType = $request->invite_type;
 
-
-
-            if ($request->invite_type == 'delegate') {
-                $countComplimentaryDelegates = DB::table('complimentary_delegates')
+            // Handle 'delegate' (Complimentary Delegate)
+            if ($inviteType === 'delegate') {
+                $current = DB::table('complimentary_delegates')
                     ->where('exhibition_participant_id', $participantId)
                     ->count();
 
-                if ($countComplimentaryDelegates >= $count['complimentary_delegate_count']) {
+                if ($current >= $count['complimentary_delegate_count']) {
                     return response()->json(['error' => 'You have reached the maximum limit of complimentary delegates'], 422);
                 }
 
-                // Generate token and insert
+                $ticketCategoryId = DB::table('ticket_categories')->where('ticket_type', 'delegate')->value('id');
                 $token = Str::random(32);
+
                 DB::table('complimentary_delegates')->insert([
                     'email' => $request->email,
                     'exhibition_participant_id' => $participantId,
+                    'ticket_category_id' => $ticketCategoryId,
                     'token' => $token,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
 
-
-
-                // Find the exhibition_participant_id from the complimentary_delegates or stall_manning table
-                $exhibitionParticipantId = $participantId;
-
-
-
-                // Find the company name from the application table using exhibition_participant_id
-                $companyName = Application::whereHas('exhibitionParticipant', function ($query) use ($exhibitionParticipantId) {
-                    $query->where('id', $exhibitionParticipantId);
+                $companyName = Application::whereHas('exhibitionParticipant', function ($query) use ($participantId) {
+                    $query->where('id', $participantId);
                 })->value('company_name');
-                //send an email to the invitee with the token and link as Route::get('/invited/{token}/', [ExhibitorController::class, 'invited'])->name('exhibition.invited');
 
-                Mail::to($request->email)->send(new InviteMail($companyName, $request->invite_type, $token));
-
+                Mail::to($request->email)->send(new InviteMail($companyName, 'delegate', $token));
 
                 return response()->json(['message' => 'Invitation sent successfully!']);
             }
 
-            if ($request->invite_type == 'exhibitor') {
-                Log::info("Invitation mail sent queue 6");
-                $countStallManning = DB::table('stall_manning')
+            // Handle 'exhibitor' (Stall Manning)
+            if ($inviteType === 'exhibitor') {
+                $current = DB::table('stall_manning')
                     ->where('exhibition_participant_id', $participantId)
                     ->count();
 
-                if ($countStallManning >= $count['stall_manning_count']) {
+                if ($current >= $count['stall_manning_count']) {
                     return response()->json(['error' => 'You have reached the maximum limit of stall manning'], 422);
                 }
 
-                // Generate token and insert
                 $token = Str::random(32);
+
                 DB::table('stall_manning')->insert([
                     'email' => $request->email,
                     'exhibition_participant_id' => $participantId,
@@ -272,29 +243,67 @@ class ExhibitorController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-                Log::info("Invitation mail sent queue 7");
-                // Find the exhibition_participant_id from the complimentary_delegates or stall_manning table
-                $exhibitionParticipantId = $participantId;
 
-
-                // Find the company name from the application table using exhibition_participant_id
-                $companyName = Application::whereHas('exhibitionParticipant', function ($query) use ($exhibitionParticipantId) {
-                    $query->where('id', $exhibitionParticipantId);
+                $companyName = Application::whereHas('exhibitionParticipant', function ($query) use ($participantId) {
+                    $query->where('id', $participantId);
                 })->value('company_name');
 
-                //send an email to the invitee with the token and link as Route::get('/invited/{token}/', [ExhibitorController::class, 'invited'])->name('exhibition.invited');
-                Mail::to($request->email)->queue(new InviteMail($companyName, $request->invite_type, $token));
-
+                Mail::to($request->email)->send(new InviteMail($companyName, 'exhibitor', $token));
 
                 return response()->json(['message' => 'Invitation sent successfully!']);
             }
 
+            // Handle custom badge categories (ticket_category_id)
+            if (is_numeric($inviteType)) {
+                $ticket_category_id = (int)$inviteType;
+                $ticketCategory = DB::table('ticket_categories')->where('id', $ticket_category_id)->first();
+                if (!$ticketCategory) {
+                    return response()->json(['error' => 'Invalid badge category'], 422);
+                }
+
+                // Get allowed count for this ticket_category_id from exhibition_participant_passes
+                $allowed = DB::table('exhibition_participant_passes')
+                    ->where('participant_id', $participantId)
+                    ->where('ticket_category_id', $ticket_category_id)
+                    ->value('badge_count');
+
+                if (!$allowed) {
+                    return response()->json(['error' => 'No allocation found for this badge category'], 422);
+                }
+
+                $current = DB::table('complimentary_delegates')
+                    ->where('exhibition_participant_id', $participantId)
+                    ->where('ticket_category_id', $ticket_category_id)
+                    ->count();
+
+                if ($current >= $allowed) {
+                    return response()->json(['error' => 'You have reached the maximum limit for this badge category'], 422);
+                }
+
+                $token = Str::random(32);
+
+                DB::table('complimentary_delegates')->insert([
+                    'email' => $request->email,
+                    'exhibition_participant_id' => $participantId,
+                    'ticket_category_id' => $ticket_category_id,
+                    'token' => $token,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $companyName = Application::whereHas('exhibitionParticipant', function ($query) use ($participantId) {
+                    $query->where('id', $participantId);
+                })->value('company_name');
+
+                Mail::to($request->email)->send(new InviteMail($companyName, $ticketCategory->ticket_type, $token));
+
+                return response()->json(['message' => 'Invitation sent for custom badge category!']);
+            }
+
             return response()->json(['error' => 'Invalid request'], 400);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Return validation errors in JSON format
             return response()->json(['error' => $e->errors()], 422);
         } catch (\Exception $e) {
-            // Log error and return JSON response
             Log::error('Invite error: ' . $e->getMessage());
             return response()->json(['error' => 'Something went wrong!'], 500);
         }
@@ -426,29 +435,16 @@ class ExhibitorController extends Controller
 
     public function add(Request $request)
     {
-
         try {
-
-            /**
-             * name: document.getElementById('name').value,
-             * email: document.getElementById('email').value,
-             * phone: fullPhoneNumber,
-             * jobTitle: document.getElementById('jobTitle').value,
-             * invite_type : document.getElementById('inviteType2').value
-             */
-
-            #Log::info($request->all());
             // Validate request and return JSON error messages
             $validatedData = $request->validate([
-                'invite_type' => 'required|in:delegate,exhibitor',
+                'invite_type' => 'required',
                 'email' => 'required|email|unique:complimentary_delegates|unique:stall_manning',
                 'name' => 'required',
                 'phone' => 'required',
                 'jobTitle' => 'required',
             ]);
 
-
-            // Fetch counts
             $count = $this->checkCount();
             $participantId = $count['exhibition_participant_id'];
 
@@ -461,8 +457,6 @@ class ExhibitorController extends Controller
                     return response()->json(['error' => 'You have reached the maximum limit of complimentary delegates'], 422);
                 }
 
-                // Generate token and insert
-                $token = Str::random(32);
                 DB::table('complimentary_delegates')->insert([
                     'email' => $request->email,
                     'exhibition_participant_id' => $participantId,
@@ -485,7 +479,6 @@ class ExhibitorController extends Controller
                     return response()->json(['error' => 'You have reached the maximum limit of stall manning'], 422);
                 }
 
-                // Generate token and insert
                 $token = Str::random(32);
                 DB::table('stall_manning')->insert([
                     'first_name' => $request->name,
@@ -501,12 +494,55 @@ class ExhibitorController extends Controller
                 return response()->json(['message' => 'Exhibitor Delegate added  successfully!']);
             }
 
+            // Handle custom badge categories (dynamic ticket_category_id based on invite_type)
+            // If invite_type is not 'delegate' or 'exhibitor', treat it as a custom badge type (ticket_type string)
+            if (!in_array($request->invite_type, ['delegate', 'exhibitor'])) {
+                // Find ticket_category_id by matching invite_type to ticket_categories.ticket_type
+                $ticketCategory = DB::table('ticket_categories')->where('id', $request->invite_type)->first();
+                if (!$ticketCategory) {
+                    return response()->json(['error' => 'Invalid badge category'], 422);
+                }
+                $ticket_category_id = $ticketCategory->id;
+                // Get allowed count for this ticket_category_id from exhibition_participant_passes
+                $allowed = DB::table('exhibition_participant_passes')
+                    ->where('participant_id', $participantId)
+                    ->where('ticket_category_id', $ticket_category_id)
+                    ->value('badge_count');
+
+                if (!$allowed) {
+                    return response()->json(['error' => 'No allocation found for this badge category'], 422);
+                }
+
+                $current = DB::table('complimentary_delegates')
+                    ->where('exhibition_participant_id', $participantId)
+                    ->where('ticket_category_id', $ticket_category_id)
+                    ->count();
+
+                if ($current >= $allowed) {
+                    return response()->json(['error' => 'You have reached the maximum limit for this badge category'], 422);
+                }
+
+                $phone = $request->phone;
+
+
+                DB::table('complimentary_delegates')->insert([
+                    'email' => $request->email,
+                    'exhibition_participant_id' => $participantId,
+                    'ticket_category_id' => $ticket_category_id,
+                    'first_name' => $request->name,
+                    'mobile' => $request->phone,
+                    'job_title' => $request->jobTitle,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                return response()->json(['message' => 'Attendee added to custom badge category successfully!']);
+            }
+
             return response()->json(['error' => 'Invalid request'], 400);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            // Return validation errors in JSON format
             return response()->json(['error' => $e->errors()], 422);
         } catch (\Exception $e) {
-            // Log error and return JSON response
             Log::error('Invite error: ' . $e->getMessage());
             return response()->json(['error' => 'Something went wrong!'], 500);
         }

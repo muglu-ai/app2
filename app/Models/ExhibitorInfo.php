@@ -1,4 +1,4 @@
-<?
+<?php
 
 namespace App\Models;
 
@@ -6,11 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExhibitorInfo extends Model
 {
+    //
     protected $table = 'exhibitors_info';
 
     protected $fillable = [
-        'application_id', 'contact_person', 'email', 'phone','fascia_name',
-        'logo', 'description', 'linkedin', 'instagram', 'facebook', 'youtube'
+        'application_id',
+        'contact_person',
+        'email',
+        'phone',
+        'fascia_name',
+        'logo',
+        'description',
+        'linkedin',
+        'instagram',
+        'facebook',
+        'youtube'
     ];
 
     public function application()

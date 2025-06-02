@@ -10,7 +10,7 @@ class ComplimentaryDelegate extends Model
     //
     use HasFactory;
 
-    protected $fillable = ['exhibition_participant_id', 'first_name', 'last_name', 'email', 'mobile', 'job_title', 'organisation_name'];
+    protected $fillable = ['exhibition_participant_id', 'first_name', 'last_name', 'email', 'mobile', 'job_title', 'organisation_name', 'ticket_category_id'];
 
     public function exhibitionParticipant()
     {

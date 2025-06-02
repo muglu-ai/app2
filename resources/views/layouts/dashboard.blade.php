@@ -38,6 +38,11 @@
 
         }
 
+        .navbar-vertical .navbar-brand-img, .navbar-vertical .navbar-brand>img {
+            max-width: 100%;
+            max-height: 3rem;
+        }
+
         /*body{*/
         /*    background-color: #dbdfdf !important;*/
         /*    font-size: 18px  !important;*/

@@ -1,5 +1,4 @@
-<?
-
+<?php
 
 namespace App\Http\Controllers;
 
@@ -19,7 +18,8 @@ use App\Mail\SponsorInvoiceMail;
 class ExhibitorInfoController extends Controller
 {
 
-    //construct function 
+
+    //construct function
     /*public function __construct()
     {
         // $user = auth()->user();
@@ -43,7 +43,7 @@ class ExhibitorInfoController extends Controller
     }
 */
 
-// get the application id from application table where user_id is logged in user id
+    // get the application id from application table where user_id is logged in user id
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
@@ -56,12 +56,17 @@ class ExhibitorInfoController extends Controller
                 return redirect()->route('event.list')->with('error', 'You are not authorized to access this page.');
             }
 
-            $applicationId = Application::where('user_id', Auth::id())
-                ->where('submission_status', 'approved')
-                ->whereHas('invoices.payments', function ($query) {
-                    $query->where('status', 'successful');
-                })
-                ->value('id');
+            // $applicationId = Application::where('user_id', Auth::id())
+            //     ->where('submission_status', 'approved',)
+            //     ->whereHas('invoices.payments', function ($query) {
+            //         $query->where('status', 'successful');
+            //     })
+            //     ->value('id');
+            $applicationId = Application::where('user_id', auth()->user()->id)
+                ->whereIn('submission_status', ['approved', 'submitted'])
+                ->whereHas('invoice', function ($query) {
+                    $query->where('type', 'Stall Booking')->where('payment_status', 'paid');
+                })->value('id');
 
             if (!$applicationId) {
                 return redirect()->route('event.list')->with('error', 'You are not authorized to access this page.');
@@ -98,7 +103,7 @@ class ExhibitorInfoController extends Controller
         //     return redirect()->route('event.list')->with('error', 'You are not authorized to access this page.');
         // }
 
-       // get the application id from application table where user_id is logged in user id
+        // get the application id from application table where user_id is logged in user id
         $applicationId = Application::where('user_id', Auth::id())
             ->where('submission_status', 'approved')
             ->whereHas('invoices.payments', function ($query) {
@@ -106,11 +111,11 @@ class ExhibitorInfoController extends Controller
             })
             ->value('id');
 
-            // dd($applicationId);
+        // dd($applicationId);
 
 
 
-        // check if the user is 
+        // check if the user is
         $application = Application::findOrFail($applicationId);
         $slug = "Exhibitor Directory Information";
 
@@ -121,8 +126,8 @@ class ExhibitorInfoController extends Controller
 
     public function storeExhibitor(Request $request)
     {
-          $applicationId = $this->getApplicationId();
-          // pass this application id to the request
+        $applicationId = $this->getApplicationId();
+        // pass this application id to the request
         $request->merge(['application_id' => $applicationId]);
 
         // dd($request->all());
@@ -149,22 +154,22 @@ class ExhibitorInfoController extends Controller
             $data['logo'] = $request->file('logo')->store('logos', 'public');
         }
 
-        // create or update if already exists give the individual column names 
-        
+        // create or update if already exists give the individual column names
+
         $exhibitor = ExhibitorInfo::updateOrCreate(
             ['application_id' => $applicationId],
             [
-            'fascia_name' => $data['fascia_name'],
-            'contact_person' => $data['salutation'] . ' ' . $data['contact_first_name'] . ' ' . $data['contact_last_name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'],
-            'description' => $data['description'],
-            'logo' => $data['logo'] ?? (ExhibitorInfo::where('application_id', $applicationId)->value('logo')),
-            'linkedin' => $data['linkedin'] ?? null,
-            'instagram' => $data['instagram'] ?? null,
-            'facebook' => $data['facebook'] ?? null,
-            'youtube' => $data['youtube'] ?? null,
-            'application_id' => $data['application_id'],
+                'fascia_name' => $data['fascia_name'],
+                'contact_person' => $data['salutation'] . ' ' . $data['contact_first_name'] . ' ' . $data['contact_last_name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'description' => $data['description'],
+                'logo' => $data['logo'] ?? (ExhibitorInfo::where('application_id', $applicationId)->value('logo')),
+                'linkedin' => $data['linkedin'] ?? null,
+                'instagram' => $data['instagram'] ?? null,
+                'facebook' => $data['facebook'] ?? null,
+                'youtube' => $data['youtube'] ?? null,
+                'application_id' => $data['application_id'],
             ]
         );
 
@@ -176,6 +181,7 @@ class ExhibitorInfoController extends Controller
 
     public function showProductForm(Request $request)
     {
+        // dd($request->all());
         $slug = "Exhibitor Product Information";
         $applicationId = $this->getApplicationId();
         // check if the user is exhibitor
@@ -187,7 +193,7 @@ class ExhibitorInfoController extends Controller
         $exhibitorInfo = ExhibitorInfo::where('application_id', $applicationId)->first();
         // check if the exhibitor info is there or not
         if (!$exhibitorInfo) {
-            return redirect()->route('exhibitor.form')->with('error', 'Please fill the exhibitor information form first.');
+            return redirect()->route('exhibitor.info')->with('error', 'Please fill the exhibitor information form first.');
         }
 
 
@@ -208,13 +214,13 @@ class ExhibitorInfoController extends Controller
 
 
         // $exhibitor = ExhibitorInfo::findOrFail($id);
-        return view('exhibitor_info.product_form', compact('exhibitorInfo', 'slug', 'exhibitorProducts'));   
+        return view('exhibitor_info.product_form', compact('exhibitorInfo', 'slug', 'exhibitorProducts'));
     }
 
     public function productStore(Request $request)
     {
         $applicationId = $this->getApplicationId();
-        
+
 
         $data = $request->validate([
             'product_name' => 'required',
@@ -229,7 +235,7 @@ class ExhibitorInfoController extends Controller
         }
 
         // create a new product using application id
-      
+
         $exhibitorInfo = ExhibitorInfo::where('application_id', $applicationId)->first();
         //create a new product using application id
         $data['application_id'] = $applicationId;
