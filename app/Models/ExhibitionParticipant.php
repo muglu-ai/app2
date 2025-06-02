@@ -26,4 +26,9 @@ class ExhibitionParticipant extends Model
     {
         return $this->hasMany(ComplimentaryDelegate::class);
     }
+
+    public function exhibitionParticipantPasses()
+    {
+        return $this->hasMany(ExhibitionParticipantPass::class, 'participant_id');
+    }
 }

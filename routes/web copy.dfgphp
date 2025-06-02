@@ -23,15 +23,14 @@ use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\ExtraRequirementController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\PaymentGatewayController;
-use App\Http\Controllers\ExhibitorInfoController;
 //attendee controller
 use App\Http\Controllers\AttendeeController;
 use App\Http\Controllers\SponsorshipController;
-
-
 use App\Http\Controllers\TicketController;
-use App\Http\Controllers\DelOrgDetailController;
-use App\Http\Controllers\DelPersonalDetailController;
+use App\Http\Controllers\AllocationController;
+use App\Http\Controllers\ExhibitorInfoController;
+
+Route::get('/exhibitor-info', [ExhibitorInfoController::class, 'showForm'])->name('exhibitor.info')->middleware(CheckUser::class);
 
 Route::get('/paymentPay/{id}', [ApplicationController::class, 'paymentPage'])->name('paymentPage');
 
@@ -218,6 +217,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'exhibitorDashboard_new'])->name('dashboard.admin');
 });
 
+
+
+
 //logout
 
 
@@ -231,10 +233,8 @@ Route::post('/get-states', [MisController::class, 'getStates'])->name('get.state
 // Route::get('/test', [AdminController::class, 'test'])->name('test');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/application-list/', [AdminController::class, 'index'])->name('application.lists')->middleware(Auth::class);
-;
-Route::get('/copy-application/', [AdminController::class, 'copy'])->name('application.copy')->middleware(Auth::class);
-;
+Route::get('/application-list/', [AdminController::class, 'index'])->name('application.lists')->middleware(Auth::class);;
+Route::get('/copy-application/', [AdminController::class, 'copy'])->name('application.copy')->middleware(Auth::class);;
 Route::get('/application-list/{status}', [AdminController::class, 'index'])->name('application.list')->middleware(Auth::class);
 Route::get('/application-detail', [DashboardController::class, 'applicantDetails'])->name('application.show.admin')->middleware(Auth::class);
 Route::get('/price', [AdminController::class, 'price'])->name('price')->middleware(Auth::class);
@@ -264,7 +264,11 @@ Route::post('/payment/full', [PaymentController::class, 'fullPayment'])->name('p
 //payment verified from payment gateway
 Route::match(['post', 'get'], '/payment/verify', [PaymentController::class, 'Successpayment'])->name('payment.verify')->middleware(CheckUser::class);
 
-
+Route::get('/allocations', [AllocationController::class, 'showAllAllocations'])->name('allocations.list');
+Route::get('/badge/{applicationId}/{ticketType}', [AllocationController::class, 'readBadge'])->name('badge.read');
+Route::get('/badge/{applicationId}/{ticketType}/edit', [AllocationController::class, 'editBadge'])->name('badge.edit');
+// Add new badge category to an application
+Route::post('/badge/add', [AllocationController::class, 'addBadgeCategory'])->name('badge.add');
 
 //exhibitor Dashboard
 //get the complimentary delegates list
@@ -302,10 +306,8 @@ Route::post('/sponsor/delete', [SponsorshipController::class, 'delete'])->name('
 Route::post('/sponsor/submit', [SponsorController::class, 'submit'])->name('sponsor.submit')->middleware(CheckUser::class);
 
 //Exhibitor Info Routes
-Route::get('/exhibitor-info', [ExhibitorInfoController::class, 'showForm'])->name('exhibitor.info')->middleware(CheckUser::class);
 //post the exhibitor info
 Route::post('/exhibitor-info', [ExhibitorInfoController::class, 'storeExhibitor'])->name('exhibitor.info.submit')->middleware(CheckUser::class);
-
 //product-add route
 Route::get('/product-add', [ExhibitorInfoController::class, 'showProductForm'])->name('product.add')->middleware(CheckUser::class);
 Route::post('/product-add', [ExhibitorInfoController::class, 'productStore'])->name('product.store')->middleware(CheckUser::class);
@@ -353,8 +355,7 @@ Route::get('review_sponsor', [SponsorController::class, 'review'])->name('review
 
 
 //Admin Sponsorship Route
-Route::get('/sponsorship-list/', [AdminController::class, 'sponsorApplicationList'])->name('sponsorship.lists')->middleware(Auth::class);
-;
+Route::get('/sponsorship-list/', [AdminController::class, 'sponsorApplicationList'])->name('sponsorship.lists')->middleware(Auth::class);;
 Route::get('/sponsorship-list/{status}', [AdminController::class, 'sponsorApplicationList'])->name('sponsorship.list')->middleware(Auth::class);
 
 //Invoices and Payments  routes
@@ -408,16 +409,4 @@ Route::post('/get-sqm-options', [ApplicationController::class, 'getSQMOptions'])
 
 //get country code from applicationController
 Route::post('/get-country-code', [ApplicationController::class, 'getCountryCode']);
-
-
 Route::resource('tickets', TicketController::class);
-// Route::resource('organizations', DelOrgDetailController::class);
-Route::resource('delegates', DelPersonalDetailController::class);
-Route::get('organizations/{organization}/delegates', [DelOrgDetailController::class, 'showDelegates'])->name('organizations.delegates');
-// Route::get('/organizations/export', [DelOrgDetailController::class, 'export'])->name('organizations.export');
-// 1. Specific route must come first
-Route::get('/organizations/export', [DelOrgDetailController::class, 'export'])->name('organizations.export');
-
-// 2. Resource route comes after
-Route::resource('organizations', DelOrgDetailController::class);
-

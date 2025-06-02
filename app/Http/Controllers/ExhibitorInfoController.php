@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Http\Controllers;
 
 use App\Models\ExhibitorInfo;
@@ -56,12 +55,17 @@ class ExhibitorInfoController extends Controller
                 return redirect()->route('event.list')->with('error', 'You are not authorized to access this page.');
             }
 
-            $applicationId = Application::where('user_id', Auth::id())
-                ->where('submission_status', 'approved')
-                ->whereHas('invoices.payments', function ($query) {
-                    $query->where('status', 'successful');
-                })
-                ->value('id');
+            // $applicationId = Application::where('user_id', Auth::id())
+            //     ->where('submission_status', 'approved',)
+            //     ->whereHas('invoices.payments', function ($query) {
+            //         $query->where('status', 'successful');
+            //     })
+            //     ->value('id');
+            $applicationId = Application::where('user_id', auth()->user()->id)
+                ->whereIn('submission_status', ['approved', 'submitted'])
+                ->whereHas('invoice', function ($query) {
+                    $query->where('type', 'Stall Booking')->where('payment_status', 'paid');
+                })->value('id');
 
             if (!$applicationId) {
                 return redirect()->route('event.list')->with('error', 'You are not authorized to access this page.');
@@ -176,6 +180,7 @@ class ExhibitorInfoController extends Controller
 
     public function showProductForm(Request $request)
     {
+        // dd($request->all());
         $slug = "Exhibitor Product Information";
         $applicationId = $this->getApplicationId();
         // check if the user is exhibitor
@@ -187,7 +192,7 @@ class ExhibitorInfoController extends Controller
         $exhibitorInfo = ExhibitorInfo::where('application_id', $applicationId)->first();
         // check if the exhibitor info is there or not
         if (!$exhibitorInfo) {
-            return redirect()->route('exhibitor.form')->with('error', 'Please fill the exhibitor information form first.');
+            return redirect()->route('exhibitor.info')->with('error', 'Please fill the exhibitor information form first.');
         }
 
 

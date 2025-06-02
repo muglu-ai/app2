@@ -42,7 +42,7 @@
 
 
                         <p style="color: #475569; line-height: 1.6; font-size: 16px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-                            If you have any questions, please contact us at <a href="mailto:semiconindia@semi.org" style="color:rgb(15, 15, 14); text-decoration: none;">semiconindia@semi.org</a>.
+                            If you have any questions, please contact us at <a href="mailto:{{ config('constants.organizer.email') }}" style="color:rgb(15, 15, 14); text-decoration: none;">semiconindia@semi.org</a>.
                         </p>
                     </td>
                 </tr>

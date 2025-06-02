@@ -40,6 +40,10 @@
         .async-hide {
             opacity: 0 !important
         }
+        .navbar-vertical .navbar-brand-img, .navbar-vertical .navbar-brand>img {
+            max-width: 100%;
+        max-height: 3rem;
+        }
     </style>
 </head>
 

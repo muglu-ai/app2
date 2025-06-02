@@ -21,25 +21,33 @@ class ExhibitionController extends Controller
                 ->orWhere('id', $applicationId);
         })->first();
 
-        Log::info('Application: ' . $application);
+        if (!$application) {
+            return response()->json(['error' => 'Application not found'], 404);
+        }
 
         $stallSize = (int) $application->interested_sqm;
 
         $count = $this->calculateAllocationBadgeCount($stallSize);
 
-        $badgeCounts = $count['badges'] ?? [];
+        //Log::info("Calculated badge count:", $count);
+
+        $badgeCounts = collect($count)->mapWithKeys(function ($badgeCount, $ticketType) {
+            return [$ticketType => (int) $badgeCount];
+        });
+        //Log::info("Badge counts after mapping:", $badgeCounts->toArray());
+
+        // dd($badgeCounts);
 
         // Calculate counts based on badge allocations
-        $stallManningCount = isset($count['Exhibitor']) ? (int)$count['Exhibitor'] : 0;
-        $complimentaryDelegateCount = 0;
-        foreach ($count as $type => $value) {
-            if ($type !== 'Exhibitor') {
-                $complimentaryDelegateCount += (int)$value;
-            }
-        }
+        $stallManningCount = (int) ($badgeCounts['Exhibitor'] ?? 0);
 
+        //dd($stallManningCount);
 
-        //add new entries in stall manning and complimentary delegate tables
+        $complimentaryDelegateCount = collect($badgeCounts)
+            ->except(['Exhibitor'])
+            ->sum();
+
+        // Save or update participant data
         $exhibitionParticipant = ExhibitionParticipant::updateOrCreate(
             ['application_id' => $application->id],
             [
@@ -48,25 +56,45 @@ class ExhibitionController extends Controller
             ]
         );
 
-        // Step 2: Loop through badge types and update/create entries
+        // dd([
+        //     'ExhibitionParticipant created/updated',
+        //     'id' => $exhibitionParticipant->id,
+        //     'stall_manning_count' => $stallManningCount,
+        //     'complimentary_delegate_count' => $complimentaryDelegateCount
+        // ]);
+
+        // Process badge pass counts
         foreach ($badgeCounts as $ticketType => $badgeCount) {
-            // Find ticket category ID dynamically
+
+            if ($badgeCount <= 0) continue;
+
             $ticketCategory = TicketCategory::where('ticket_type', $ticketType)->first();
 
-            if ($ticketCategory) {
-                ExhibitionParticipantPass::updateOrCreate(
-                    [
-                        'participant_id' => $exhibitionParticipant->id,
-                        'ticket_category_id' => $ticketCategory->id
-                    ],
-                    [
-                        'badge_count' => $badgeCount
-                    ]
-                );
+            if (!$ticketCategory) {
+                Log::warning("TicketCategory not found for ticket_type: $ticketType");
+                continue;
             }
+
+            //dd("Creating/Updating ExhibitionParticipantPass for participant_id: {$exhibitionParticipant->id}, ticket_category_id: {$ticketCategory->id}, badge_count: $badgeCount");
+
+
+            ExhibitionParticipantPass::updateOrCreate(
+                [
+                    'participant_id' => $exhibitionParticipant->id,
+                    'ticket_category_id' => $ticketCategory->id
+                ],
+                [
+                    'badge_count' => $badgeCount
+                ]
+            );
+            //dd("ExhibitionParticipantPass created/updated for participant_id: {$exhibitionParticipant->id}, ticket_category_id: {$ticketCategory->id}, badge_count: $badgeCount");
         }
 
-        return response()->json(['stall_manning_count' => $stallManningCount, 'complimentary_delegate_count' => $complimentaryDelegateCount]);
+
+        return response()->json([
+            'stall_manning_count' => $stallManningCount,
+            'complimentary_delegate_count' => $complimentaryDelegateCount
+        ]);
     }
 
     public function calculateAllocationBadgeCount($stallSize)
@@ -80,6 +108,8 @@ class ExhibitionController extends Controller
         if (!$allocation) {
             return [];
         }
+
+        // dd($allocation);
 
         // Find the correct pass count based on stall size
         $badgeAllocations = DB::table('stall_pass_badges')
@@ -95,6 +125,8 @@ class ExhibitionController extends Controller
         foreach ($badgeAllocations as $row) {
             $result[$row->ticket_type] = $row->badge_count;
         }
+
+        // dd($result);
         return $result;
     }
 }

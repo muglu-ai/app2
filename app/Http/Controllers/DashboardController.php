@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\ExhibitionParticipantPass;
 
 class DashboardController extends Controller
 {
@@ -52,9 +53,20 @@ class DashboardController extends Controller
 
             //get the exhibitor and delegate count from the exhibitionParticipation table where application id is same as the application id
             $exhibitionParticipant = ExhibitionParticipant::where('application_id', $application->id)->first();
+
+            $badgeAllocations = ExhibitionParticipantPass::with('ticketCategory')
+                ->where('participant_id', $exhibitionParticipant->id)
+                ->get()
+                ->map(function ($pass) {
+                    return [
+                        'ticket_type' => $pass->ticketCategory->ticket_type,
+                        'badge_count' => $pass->badge_count
+                    ];
+                });
+            //dd($badgeAllocations);
             // dd($exhibitionParticipant);
 
-            return view('dashboard.index', compact('exhibitionParticipant', 'application'));
+            return view('dashboard.index', compact('exhibitionParticipant', 'application', 'badgeAllocations'));
             return view('dashboard.index');
         } elseif ($user->role == 'admin') {
             $analytics = app('analytics');
