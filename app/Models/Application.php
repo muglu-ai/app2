@@ -63,7 +63,7 @@ class Application extends Model
         'rejected_date',
         'stallNumber',
         'country_name',
-       'assoc_mem',
+        'assoc_mem',
         'pref_location',
         'membership_verified',
         'spon_discount_eligible',
@@ -73,7 +73,7 @@ class Application extends Model
 
     ];
 
-/* Todo : Addedd the following new fields
+    /* Todo : Addedd the following new fields
 participant_type
 previous_participation
 interested_sqm
@@ -97,10 +97,10 @@ submission_status
     }
 
 
-//    public function billingDetail()
-//    {
-//        return $this->hasOne(BillingDetail::class);
-//    }
+    //    public function billingDetail()
+    //    {
+    //        return $this->hasOne(BillingDetail::class);
+    //    }
 
     public function billingDetail()
     {
@@ -116,17 +116,17 @@ submission_status
         return $this->hasMany(Invoice::class);
     }
 
-//    public function invoice()
-//    {
-//        return $this->hasOne(Invoice::class);
-//    }
+    //    public function invoice()
+    //    {
+    //        return $this->hasOne(Invoice::class);
+    //    }
 
-     public function invoice()
-     {
-         return $this->hasOne(Invoice::class, 'application_id', 'application_id')
-                 ->where('application_no', $this->application_id)
-                 ->where('type', 'Stall Booking');
-     }
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class, 'application_id', 'id')
+            ->where('application_no', $this->application_id)
+            ->where('type', 'Stall Booking');
+    }
 
     //headquartersCountry
     public function headquartersCountry()
@@ -147,7 +147,7 @@ submission_status
     //has only one sector
     public function sector()
     {
-        return $this->belongsTo(Sector::class,'sector_id');
+        return $this->belongsTo(Sector::class, 'sector_id');
     }
 
     public function country()
@@ -201,9 +201,9 @@ submission_status
     public function sponsorshipsIfSponsor()
     {
         return $this->hasMany(Sponsorship::class, 'application_id', 'id')
-                    ->whereHas('application', function ($query) {
-                        $query->where('has_sponsorship', 1);
-                    });
+            ->whereHas('application', function ($query) {
+                $query->where('has_sponsorship', 1);
+            });
     }
 
     public function mainProductCategory()

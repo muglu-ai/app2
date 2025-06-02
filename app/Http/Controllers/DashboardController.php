@@ -29,12 +29,14 @@ class DashboardController extends Controller
             return redirect('/login');
         }
         if ($user->role == 'exhibitor') {
+
+
+
             $application = Application::where('user_id', auth()->user()->id)
-                ->where('submission_status', 'approved')
-                ->whereHas('invoices.payments', function ($query) {
-                    $query->where('status', 'successful');
-                })
-                ->first();
+                ->whereIn('submission_status', ['approved', 'submitted'])
+                ->whereHas('invoice', function ($query) {
+                    $query->where('type', 'Stall Booking')->where('payment_status', 'paid');
+                })->first();
 
             //if application is null redirect to event list  name event.list
             if (!$application) {
@@ -42,11 +44,15 @@ class DashboardController extends Controller
             }
             //get the no of exhibitors and delegate from the exhibitionParticipation table who's id is application id with same user id
             //get the application id from the application table where user id is same as the logged in user id
-            $applicationId = Application::where('user_id', auth()->id())->value('id');
+            // $applicationId = Application::where('user_id', auth()->id())->value('id');
             //get the application
             $application = Application::where('user_id', auth()->id())->first();
+
+            // dd($application->id);
+
             //get the exhibitor and delegate count from the exhibitionParticipation table where application id is same as the application id
-            $exhibitionParticipant = ExhibitionParticipant::where('application_id', $applicationId)->first();
+            $exhibitionParticipant = ExhibitionParticipant::where('application_id', $application->id)->first();
+            // dd($exhibitionParticipant);
 
             return view('dashboard.index', compact('exhibitionParticipant', 'application'));
             return view('dashboard.index');

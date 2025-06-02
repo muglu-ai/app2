@@ -28,11 +28,12 @@ class ExhibitorController extends Controller
     public function checkCount()
     {
         $application = Application::where('user_id', auth()->user()->id)
-            ->where('submission_status', 'approved')
-            ->whereHas('invoices.payments', function ($query) {
-                $query->where('status', 'successful');
-            })
-            ->first();
+            ->whereIn('submission_status', ['approved', 'submitted'])
+            ->whereHas('invoice', function ($query) {
+                $query->where('type', 'Stall Booking')->where('payment_status', 'paid');
+            })->first();
+
+        //dd($application);
 
         if (!$application) {
             return redirect()->route('application.exhibitor');
@@ -51,7 +52,6 @@ class ExhibitorController extends Controller
         ];
 
         return $count;
-
     }
 
     //get the count of filled complimentary and delegate count from the exhibition_participants table, complimentary_delegates table and complimentary_delegates with the exhibition_participant_id
@@ -78,18 +78,17 @@ class ExhibitorController extends Controller
     public function list(Request $request, $type)
     {
         $this->__Construct();
-        $count =$this->checkCount();
+        $count = $this->checkCount();
 
         //get the user application id
         $application = Application::where('user_id', auth()->user()->id)
-            ->where('submission_status', 'approved')
-            ->whereHas('invoices.payments', function ($query) {
-                $query->where('status', 'successful');
-            })
-            ->first();
+            ->whereIn('submission_status', ['approved', 'submitted'])
+            ->whereHas('invoice', function ($query) {
+                $query->where('type', 'Stall Booking')->where('payment_status', 'paid');
+            })->first();
 
         //if no application then redirect to /dashboard
-        if(!$application){
+        if (!$application) {
             return redirect('/dashboard');
         }
 
@@ -145,15 +144,14 @@ class ExhibitorController extends Controller
         //check how many has same exhibition_participant_id
 
         //if invite_type is delegate
-        if($request->invite_type == 'delegate') {
+        if ($request->invite_type == 'delegate') {
             $countComplimentaryDelegates = DB::table('complimentary_delegates')
                 ->where('exhibition_participant_id', $count['exhibition_participant_id'])
                 ->count();
 
-            if($countComplimentaryDelegates >= $count['complimentary_delegate_count']) {
+            if ($countComplimentaryDelegates >= $count['complimentary_delegate_count']) {
                 return redirect()->back()->with('error', 'You have reached the maximum limit of complimentary delegates');
-            }
-            else{
+            } else {
                 // insert into complimentary_delegates table with email id and exhibition_participant_id also
                 // generate a unique token through which the invitee can fill out the information
                 $token = Str::random(32);
@@ -170,15 +168,14 @@ class ExhibitorController extends Controller
                 return response()->json(['message' => 'Invitation sent successfully!']);
             }
         }
-        if($request->invite_type == 'exhibitor') {
+        if ($request->invite_type == 'exhibitor') {
             $countStallManning = DB::table('stall_manning')
                 ->where('exhibition_participant_id', $count['application'])
                 ->count();
 
-            if($countStallManning >= $count['stall_manning_count']) {
+            if ($countStallManning >= $count['stall_manning_count']) {
                 return redirect()->back()->with('error', 'You have reached the maximum limit of stall manning');
-            }
-            else {
+            } else {
                 // insert into stall_manning table with email id and exhibition_participant_id also
                 // generate a unique token through which the invitee can fill out the information
                 // insert into stall_manning table with email id and exhibition_participant_id also
@@ -197,30 +194,26 @@ class ExhibitorController extends Controller
                 //Mail::to($request->email)->send(new InviteMail($token));
 
                 return response()->json(['message' => 'Invitation sent successfully!']);
-
-
-
-
             }
         }
     }
 
     public function invite(Request $request)
     {
-  
+
         try {
-            
+
             // Validate request and return JSON error messages
             $validatedData = $request->validate([
                 'invite_type' => 'required|in:delegate,exhibitor',
                 'email' => 'required|email|unique:complimentary_delegates|unique:stall_manning',
             ]);
-            
+
             // Fetch counts
             $count = $this->checkCount();
             $participantId = $count['exhibition_participant_id'];
 
-            
+
 
             if ($request->invite_type == 'delegate') {
                 $countComplimentaryDelegates = DB::table('complimentary_delegates')
@@ -241,20 +234,20 @@ class ExhibitorController extends Controller
                     'updated_at' => now(),
                 ]);
 
-                
+
 
                 // Find the exhibition_participant_id from the complimentary_delegates or stall_manning table
                 $exhibitionParticipantId = $participantId;
 
-                
+
 
                 // Find the company name from the application table using exhibition_participant_id
                 $companyName = Application::whereHas('exhibitionParticipant', function ($query) use ($exhibitionParticipantId) {
                     $query->where('id', $exhibitionParticipantId);
                 })->value('company_name');
                 //send an email to the invitee with the token and link as Route::get('/invited/{token}/', [ExhibitorController::class, 'invited'])->name('exhibition.invited');
-               
-                Mail::to($request->email)->send(new InviteMail($companyName ,$request->invite_type, $token));
+
+                Mail::to($request->email)->send(new InviteMail($companyName, $request->invite_type, $token));
 
 
                 return response()->json(['message' => 'Invitation sent successfully!']);
@@ -288,16 +281,15 @@ class ExhibitorController extends Controller
                 $companyName = Application::whereHas('exhibitionParticipant', function ($query) use ($exhibitionParticipantId) {
                     $query->where('id', $exhibitionParticipantId);
                 })->value('company_name');
-            
+
                 //send an email to the invitee with the token and link as Route::get('/invited/{token}/', [ExhibitorController::class, 'invited'])->name('exhibition.invited');
-                Mail::to($request->email)->queue(new InviteMail($companyName ,$request->invite_type, $token));
-             
+                Mail::to($request->email)->queue(new InviteMail($companyName, $request->invite_type, $token));
+
 
                 return response()->json(['message' => 'Invitation sent successfully!']);
             }
 
             return response()->json(['error' => 'Invalid request'], 400);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Return validation errors in JSON format
             return response()->json(['error' => $e->errors()], 422);
@@ -308,7 +300,7 @@ class ExhibitorController extends Controller
         }
     }
 
-    public function invited2($token=null)
+    public function invited2($token = null)
     {
         $token = $token ?? request('token');
         //if token is not-found then redirect to /invited/not-found
@@ -328,12 +320,12 @@ class ExhibitorController extends Controller
             $notFound = true;
         }
         // Find the exhibition_participant_id from the complimentary_delegates or stall_manning table
-       if (!$complimentaryDelegate && !$stallManning) {
-           //return to invited/not-found
-          // redirect('invited/not-found')
-           return redirect()->to('/invited/not-found');
-             return response()->json(['error' => 'Invalid token or participant not found'], 404);
-       }
+        if (!$complimentaryDelegate && !$stallManning) {
+            //return to invited/not-found
+            // redirect('invited/not-found')
+            return redirect()->to('/invited/not-found');
+            return response()->json(['error' => 'Invalid token or participant not found'], 404);
+        }
         $exhibitionParticipantId = $complimentaryDelegate ? $complimentaryDelegate->exhibition_participant_id : $stallManning->exhibition_participant_id;
         // Find the company name from the application table using exhibition_participant_id
         $companyName = Application::whereHas('exhibitionParticipant', function ($query) use ($exhibitionParticipantId) {
@@ -353,7 +345,7 @@ class ExhibitorController extends Controller
         if (empty($token) || $token === 'not-found') {
             return response()->view('exhibitor.invited', ['notFound' => true], 404);
         }
-        if ( $token === 'success') {
+        if ($token === 'success') {
             return response()->view('exhibitor.invited', ['notFound' => false, 'token' => 'success'], 400);
         }
 
@@ -374,7 +366,7 @@ class ExhibitorController extends Controller
             $query->where('id', $exhibitionParticipantId);
         })->value('company_name');
 
-        $notFound = false ;
+        $notFound = false;
         return view('exhibitor.invited', compact('companyName', 'notFound', 'token'));
     }
 
@@ -382,7 +374,7 @@ class ExhibitorController extends Controller
     {
         //dd($request->all());
         $validatedData = $request->validate([
-          'token' => [
+            'token' => [
                 'required',
                 function ($attribute, $value, $fail) {
                     $existsInComplimentary = DB::table('complimentary_delegates')->where('token', $value)->exists();
@@ -430,8 +422,6 @@ class ExhibitorController extends Controller
 
         //redirect to the invited with message of successful submission route('exhibition.invited', ['token' => $token]) with token as success
         return redirect()->route('exhibition.invited', ['token' => 'success']);
-
-
     }
 
     public function add(Request $request)
@@ -512,7 +502,6 @@ class ExhibitorController extends Controller
             }
 
             return response()->json(['error' => 'Invalid request'], 400);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Return validation errors in JSON format
             return response()->json(['error' => $e->errors()], 422);
@@ -527,7 +516,7 @@ class ExhibitorController extends Controller
     public function invoices(Request $request)
     {
         $this->__Construct();
-//        $this->checkCount();
+        //        $this->checkCount();
 
         $sortField = $request->input('sort', 'created_at'); // Default sort by 'created_at'
         $sortDirection = $request->input('direction', 'desc'); // Default sort 'desc'
@@ -544,7 +533,7 @@ class ExhibitorController extends Controller
         //find the appliocantion id of the user
         $application = Application::where('user_id', $user_id)->first();
         //if not application then redirect to /dashboard
-        if(!$application){
+        if (!$application) {
             return redirect('/dashboard');
         }
         //find the invoices of the user
@@ -553,7 +542,7 @@ class ExhibitorController extends Controller
             ->paginate($perPage);
 
         //if invoices is empty then redirect to /dashbaord
-        if($invoices->isEmpty()){
+        if ($invoices->isEmpty()) {
             return redirect('/dashboard');
         }
 
@@ -578,7 +567,4 @@ class ExhibitorController extends Controller
 
         return view('applications.invoices', compact('invoices', 'application', 'payments'));
     }
-
-
-
 }
