@@ -18,7 +18,8 @@ define('ORGANIZER_NAME', 'MM Activ Sci-Tech Communications');
 define('ORGANIZER_ADDRESS', 'No.11/3, NITON, Block C, 2nd Floor, Palace Road, Bengaluru - 560001, Karnataka, India');
 define('FAVICON_APPLE', 'https://www.bengalurutechsummit.com/apple-touch-icon.png');
 define('FAVICON', 'https://www.bengalurutechsummit.com/favicon-32x32.png');
-define('FAVICON_16', 'https://www.bengalurutechsummit.com/favicon-16x16.png');define('ORGANIZER_PHONE', '+91-8069328400');
+define('FAVICON_16', 'https://www.bengalurutechsummit.com/favicon-16x16.png');
+define('ORGANIZER_PHONE', '+91-8069328400');
 define('ORGANIZER_EMAIL', 'enquiry@bengalurutechsummit.com');
 define('ORGANIZER_WEBSITE', 'https://mmactiv.in/');
 define('ORGANIZER_LOGO', 'https://www.mmactiv.in/images/mma.jpg');
@@ -81,9 +82,10 @@ return [
     'INT_PROCESSING_CHARGE' => INT_PROCESSING_CHARGE, // 9% processing fee for International payments
 
 
+
     // CCAVENUE Configuration
-    'CCAVENUE_ACCESS_CODE'=>"AVAX60MC26BE01XAEB",
-    'CCAVENUE_WORKING_KEY'=>"DBBE266B02508AF7118D4A2598763D69",
+    'CCAVENUE_ACCESS_CODE' => "AVAX60MC26BE01XAEB",
+    'CCAVENUE_WORKING_KEY' => "DBBE266B02508AF7118D4A2598763D69",
     'CCAVENUE_MERCHANT_ID' => "7700",
     'CCAVENUE_REDIRECT_URL' => APP_URL . "/payment/ccavenue-success",
     'IND_PROCESSING_CHARGE' => IND_PROCESSING_CHARGE, // 3% processing fee for National payments
@@ -190,7 +192,13 @@ return [
     ],
 
     'job_functions' => [
-        'Owner/Founder', 'Purchasing Manager', 'Sales/Marketing', 'Technical Manager', 'Operations', 'Consultant', 'Other'
+        'Owner/Founder',
+        'Purchasing Manager',
+        'Sales/Marketing',
+        'Technical Manager',
+        'Operations',
+        'Consultant',
+        'Other'
     ],
 
 
@@ -211,6 +219,9 @@ return [
         '135' => '135sqm (135sqm x Rs. ' . RAW_SPACE_RATE . ') Raw Space = ' . number_format(135 * RAW_SPACE_RATE) . ' + 18% GST',
     ],
 
+    'SHELL_SCHEME_RATE_USD' => SHELL_SCHEME_RATE * 0.012, // Assuming 1 INR = 0.012 USD
+    'RAW_SPACE_RATE_USD' => RAW_SPACE_RATE * 0.012, // Assuming 1 INR = 0.012 USD
+
 
     // Admin Emails to receive notifications
     'admin_emails' => [
@@ -225,8 +236,8 @@ return [
 
         'payment_emails' => array_merge(
             [
-            'accounts@mmactiv.com',
-            'test.interlinks@gmail.com',
+                'accounts@mmactiv.com',
+                'test.interlinks@gmail.com',
             ],
             (array) (config('admin_emails.to') ?? [])
         ),

@@ -1,165 +1,55 @@
 @extends('layouts.users')
 @section('title', 'Application Info')
+
 @section('content')
-    <div class="container-fluid py-2">
-        <div class="row">
-            <div class="ms-3 mt-3">
-                <h3 class="mb-0 h4 font-weight-bolder">Application Info</h3>
-                <p class="mb-4 ">Application No: {{ $application->application_id }} </p>
-            </div>
-
-            <h3 class="mb-0 h4 font-weight-bolder mb-3">Company Details</h3>
-
-            <div class="row">
-                <div class="col-md-4">
-                    <label for="billing_country" class="form-label fw-bold text-nowrap">Billing Country:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->country->name }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="gst_compliance" class="form-label fw-bold text-nowrap">GST Compliance:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->gst_compliance == 1 ? 'Yes' : 'No' }}</p>
-                </div>
-                @if($application->gst_compliance == 1)
-                    <div class="col-md-4">
-                        <label for="gst_number" class="form-label fw-bold text-nowrap">GST Number:</label>
-                        <p class="form-control-plaintext mb-0">{{ $application->gst_no }}</p>
-                    </div>
-                @endif
-            </div>
-
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label for="pan_no" class="form-label fw-bold text-nowrap">PAN Number:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->pan_no }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="tan_no" class="form-label fw-bold text-nowrap">TAN Number:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->tan_no }}</p>
-                </div>
-{{--                <div class="col-md-4">--}}
-{{--                    <label for="tan_no" class="form-label fw-bold text-nowrap">GST Certificate:</label>--}}
-{{--                    <p class="form-control-plaintext mb-0"><a href="{{ Storage::url($application->certificate) }}" target="_blank" style="color: blue;">View Uploaded GST Certificate</a></p>--}}
-{{--                </div>--}}
-            </div>
-
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label for="company_name" class="form-label fw-bold text-nowrap">Company Name:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->company_name }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="company_address" class="form-label fw-bold text-nowrap">Company Address:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->address }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="postal_code" class="form-label fw-bold text-nowrap">Postal Code:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->postal_code }}</p>
-                </div>
-            </div>
-
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label for="city" class="form-label fw-bold text-nowrap">City:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->city_id }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="state" class="form-label fw-bold text-nowrap">State:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->state->name }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="company_contact" class="form-label fw-bold text-nowrap">Company Contact/Landline No:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->landline }}</p>
-                </div>
-            </div>
-
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label for="company_email" class="form-label fw-bold text-nowrap">Company Email:</label>
-                    <p class="form-control-plaintext mb-0">{{ $application->company_email }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="website" class="form-label fw-bold text-nowrap">Website:</label>
-                    <p class="form-control-plaintext mb-0"><a href="{{ $application->website }}" target="_blank" style="color: blue;">{{ $application->website }}</a></p>
-                </div>
-{{--                <div class="col-md-4">--}}
-{{--                    <label for="main_product_category" class="form-label fw-bold text-nowrap">Main Product Category:</label>--}}
-{{--                    <p class="form-control-plaintext mb-0">{{ $application->main_product_category }}</p>--}}
-{{--                </div>--}}
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label for="main_product_category" class="form-label fw-bold text-nowrap">Main Product Category:</label>
-                    @foreach($productCategories as $product)
-                        @if(isset($application) && $application->main_product_category == $product->id)
-                            <p class="form-control-plaintext mb-0">{{ $product->name }}</p>
-                        @endif
-                    @endforeach
-                </div>
-
-                <div class="col-md-4">
-                    <label for="main_product_category" class="form-label fw-bold text-nowrap">Type of Buisness:</label>
-                    <p class="form-control-plaintext mb-0">
-                        @if(isset($application))
-                            {{ $application->type_of_business }}
-                        @endif
-                    </p>
-                </div>
-
-            </div>
-            <h3 class="mb-0 h4 mt-5 font-weight-bolder">Event Contact Person Details</h3>
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label for="contact_title" class="form-label fw-bold text-nowrap">Name & Designation:</label>
-                    <p class="form-control-plaintext mb-0">{{ $eventContact->salutation }} {{ $eventContact->first_name }} {{ $eventContact->last_name }}, {{ $eventContact->job_title }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="contact_email" class="form-label fw-bold text-nowrap">Contact Email:</label>
-                    <p class="form-control-plaintext mb-0">{{ $eventContact->email }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="contact_number" class="form-label fw-bold text-nowrap">Mobile Number:</label>
-                    <p class="form-control-plaintext mb-0">{{ $eventContact->contact_number }}</p>
-                </div>
-            </div>
-            <h3 class="mb-0 h4 font-weight-bolder mb-3 mt-3">Billing Details</h3>
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label for="billing_company" class="form-label fw-bold text-nowrap">Billing Company:</label>
-                    <p class="form-control-plaintext mb-0">{{ $billingDetails->billing_company }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="billing_contact_name" class="form-label fw-bold text-nowrap">Contact Name:</label>
-                    <p class="form-control-plaintext mb-0">{{ $billingDetails->contact_name }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="billing_email" class="form-label fw-bold text-nowrap">Email:</label>
-                    <p class="form-control-plaintext mb-0">{{ $billingDetails->email }}</p>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label for="billing_phone" class="form-label fw-bold text-nowrap">Phone Number:</label>
-                    <p class="form-control-plaintext mb-0">{{ $billingDetails->phone }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="billing_address" class="form-label fw-bold text-nowrap">Billing Address:</label>
-                    <p class="form-control-plaintext mb-0">{{ $billingDetails->address }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="billing_city" class="form-label fw-bold text-nowrap">Billing City:</label>
-                    <p class="form-control-plaintext mb-0">{{ $billingDetails->city_id }}</p>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-4">
-                    <label for="billing_postal_code" class="form-label fw-bold text-nowrap">Billing Postal Code:</label>
-                    <p class="form-control-plaintext mb-0">{{ $billingDetails->postal_code }}</p>
-                </div>
-                <div class="col-md-4">
-                    <label for="billing_state" class="form-label fw-bold text-nowrap">State:</label>
-                    <p class="form-control-plaintext mb-0">{{ $billingDetails->state->name }}</p>
-                </div>
-            </div>
+<div class="container-fluid py-4">
+    <div class="row mb-3 border-bottom pb-2">
+        <div class="col-12">
+            <h4 class="fw-bold">Application Info</h4>
+            <p class="text-muted">Application No: <strong>{{ $application->application_id }}</strong></p>
         </div>
     </div>
+
+    <h5 class="fw-semibold border-bottom pb-2 mb-4">Company Details</h5>
+
+    <div class="row gy-3">
+        <x-app-info label="Billing Country" :value="optional($application->country)->name" />
+        <x-app-info label="GST Compliance" :value="$application->gst_compliance ? 'Yes' : 'No'" />
+        @if($application->gst_compliance)
+            <x-app-info label="GST Number" :value="$application->gst_no" />
+        @endif
+
+        <x-app-info label="PAN Number" :value="$application->pan_no" />
+        <x-app-info label="TAN Number" :value="$application->tan_no" />
+        <x-app-info label="Company Name" :value="$application->company_name" />
+        <x-app-info label="Company Address" :value="$application->address" />
+        <x-app-info label="Postal Code" :value="$application->postal_code" />
+        <x-app-info label="City" :value="$application->city_id" />
+        <x-app-info label="State" :value="optional($application->state)->name" />
+        <x-app-info label="Company Contact/Landline No" :value="$application->landline" />
+        <x-app-info label="Company Email" :value="$application->company_email" />
+        <x-app-info label="Website" :value="$application->website" :link="true" />
+        <x-app-info label="Main Product Category" :value="optional($productCategories->firstWhere('id', $application->main_product_category))->name" />
+        <x-app-info label="Type of Business" :value="$application->type_of_business" />
+    </div>
+
+    <h5 class="fw-semibold border-bottom pb-2 mt-5 mb-4">Event Contact Person Details</h5>
+    <div class="row gy-3">
+        <x-app-info label="Name & Designation" :value="$eventContact->salutation . ' ' . $eventContact->first_name . ' ' . $eventContact->last_name . ', ' . $eventContact->job_title" />
+        <x-app-info label="Contact Email" :value="$eventContact->email" />
+        <x-app-info label="Mobile Number" :value="$eventContact->contact_number" />
+    </div>
+
+    <h5 class="fw-semibold border-bottom pb-2 mt-5 mb-4">Billing Details</h5>
+    <div class="row gy-3">
+        <x-app-info label="Billing Company" :value="$billingDetails->billing_company" />
+        <x-app-info label="Contact Name" :value="$billingDetails->contact_name" />
+        <x-app-info label="Email" :value="$billingDetails->email" />
+        <x-app-info label="Phone Number" :value="$billingDetails->phone" />
+        <x-app-info label="Billing Address" :value="$billingDetails->address" />
+        <x-app-info label="Billing City" :value="$billingDetails->city_id" />
+        <x-app-info label="Billing Postal Code" :value="$billingDetails->postal_code" />
+        <x-app-info label="State" :value="optional($billingDetails->state)->name" />
+    </div>
+</div>
 @endsection

@@ -17,6 +17,7 @@ use App\Http\Controllers\SalesController;
 use App\Http\Controllers\SponsorController;
 use App\Http\Middleware\Auth;
 use App\Http\Middleware\CheckUser;
+use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoicesController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\SponsorshipController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\DelOrgDetailController;
 use App\Http\Controllers\DelPersonalDetailController;
+use App\Http\Controllers\AllocationController;
 
 Route::get('/paymentPay/{id}', [ApplicationController::class, 'paymentPage'])->name('paymentPage');
 
@@ -135,6 +137,9 @@ Route::middleware([CheckUser::class])->group(function () {
     Route::post('/payment/partial', [PaymentController::class, 'partialPayment'])->name('payment.partial');
     Route::post('/payment/full', [PaymentController::class, 'fullPayment'])->name('payment.full');
     Route::match(['post', 'get'], '/payment/verify', [PaymentController::class, 'Successpayment'])->name('payment.verify');
+    Route::get('/co-exhibitor/dashboard', function () {
+        return view('co_exhibitor.dashboard');
+    })->name('dashboard.co-exhibitor');
 });
 
 // Routes with Auth middleware
@@ -182,7 +187,6 @@ Route::middleware([Auth::class])->group(function () {
     Route::get('export_approved_applications', [ExportController::class, 'export_approved_applications'])->name('export.app.applications');
     Route::get('export_sponsorships', [ExportController::class, 'export_sponsorship_applications'])->name('export.sponsorships');
     Route::get('export_requirements', [ExportController::class, 'extra_requirements_export'])->name('export.requirements');
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
 // Role-based middleware groups
@@ -217,11 +221,30 @@ Route::post('/get-states', [MisController::class, 'getStates'])->name('get.state
 //Route::get('bill', function () {
 //    return view('bills.invoice');
 //})->name('bill');
-//Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::get('/', [AuthController::class, 'showLoginForm'])->name('app.home');
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::get('register', [AuthController::class, 'showRegistrationForm'])->name('register.form');
+Route::post('register', [AuthController::class, 'register'])->name('register');
+
+
+Route::post('/login', [AuthController::class, 'login'])->name('login.process');
+
+//forget password
+
+Route::get('forgot-password', [ForgotPasswordController::class, 'showForgotPasswordForm'])->name('forgot.password');
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('forgot.password.submit');
+//reset password
+Route::get('reset-password/{token}/{email}', [ForgotPasswordController::class, 'showResetPasswordForm'])->name('reset.password');
+Route::post('reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('reset.password.submit');
+
+//verify account with get method
+Route::get('verify-account/{token}', [AuthController::class, 'verifyAccount'])->name('auth.verify');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 //test-layout
 // Route::get('/test', [AdminController::class, 'test'])->name('test');
 
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/application-list/', [AdminController::class, 'index'])->name('application.lists')->middleware(Auth::class);;
 Route::get('/copy-application/', [AdminController::class, 'copy'])->name('application.copy')->middleware(Auth::class);;
 Route::get('/application-list/{status}', [AdminController::class, 'index'])->name('application.list')->middleware(Auth::class);
@@ -382,6 +405,18 @@ Route::get('export_requirements', [ExportController::class, 'extra_requirements_
 Route::post('membership/verify', [AdminController::class, 'verifyMembership'])->name('membership.verify')->middleware(Auth::class);
 ///membership/reject
 Route::post('membership/reject', [AdminController::class, 'unverifyMembership'])->name('membership.reject')->middleware(Auth::class);
+
+
+Route::resource('tickets', TicketController::class);
+// Route::resource('organizations', DelOrgDetailController::class);
+Route::resource('delegates', DelPersonalDetailController::class);
+Route::get('organizations/{organization}/delegates', [DelOrgDetailController::class, 'showDelegates'])->name('organizations.delegates');
+// Route::get('/organizations/export', [DelOrgDetailController::class, 'export'])->name('organizations.export');
+// 1. Specific route must come first
+Route::get('/organizations/export', [DelOrgDetailController::class, 'export'])->name('organizations.export');
+
+// 2. Resource route comes after
+Route::resource('organizations', DelOrgDetailController::class);
 
 
 
