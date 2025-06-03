@@ -26,29 +26,20 @@
     </style>
 
     @php
+        $cssClass = !empty(optional($exhibitorInfo)->fascia_name) ? 'is-filled' : '';
 
-        //if exhibitorInfo is filled then set the css value to is-filled
-        if ($exhibitorInfo->fascia_name ?? '' != '') {
-            $cssClass = 'is-filled';
-        } else {
-            $cssClass = '';
-        }
-
-        //break down the name into salutation, first and last name
-        $contactPerson = $exhibitorInfo->contact_person ?? '';
+        $contactPerson = optional($exhibitorInfo)->contact_person ?? '';
         $salutation = '';
         $firstName = '';
         $lastName = '';
 
         if ($contactPerson) {
-            // Match salutation (ends with a dot), first name, last name
             if (preg_match('/^([A-Za-z\.]+)\s+([^\s]+)\s*(.*)$/', $contactPerson, $matches)) {
                 $salutation = trim($matches[1]);
                 $firstName = trim($matches[2]);
                 $lastName = trim($matches[3]);
             }
         }
-
     @endphp
 
     <div class="container mt-4">
@@ -58,7 +49,6 @@
                     enctype="multipart/form-data">
                     @csrf
 
-                    <!-- Panel: Exhibitor Basic Information -->
                     <div class="multisteps-form__panel border-radius-xl bg-white js-active" data-animation="FadeIn">
                         <h5 class="font-weight-bolder mb-0">Exhibitor Information</h5>
                         <p class="mb-5 text-sm">Prefilled details & mandatory exhibitor inputs</p>
@@ -68,15 +58,13 @@
                                 <div class="col-sm-6">
                                     <div class="input-group input-group-dynamic is-filled">
                                         <label class="form-label custom-label">Company Name</label>
-                                        <input class="form-control" type="text" value="{{ $application->company_name }}"
-                                            readonly>
+                                        <input class="form-control" type="text" value="{{ $application->company_name }}" readonly>
                                     </div>
                                 </div>
                                 <div class="col-sm-6 mt-3 mt-sm-0">
                                     <div class="input-group input-group-dynamic is-filled">
                                         <label class="form-label">Booth Number</label>
-                                        <input class="form-control" type="text" value="{{ $application->stallNumber }}"
-                                            readonly>
+                                        <input class="form-control" type="text" value="{{ $application->stallNumber }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -86,7 +74,7 @@
                                     <div class="input-group input-group-dynamic {{ $cssClass }}">
                                         <label class="form-label">Fascia Name</label>
                                         <input class="form-control" type="text" name="fascia_name"
-                                            value="{{ $exhibitorInfo->fascia_name ?? '' }}" required>
+                                            value="{{ optional($exhibitorInfo)->fascia_name }}" required>
                                     </div>
                                 </div>
                             </div>
@@ -99,16 +87,9 @@
                                                 <label class="form-label">Salutation</label>
                                                 <select class="form-control" name="salutation" required>
                                                     <option value="" disabled selected>Select</option>
-                                                    <option value="Mr." {{ $salutation == 'Mr.' ? 'selected' : '' }}>Mr.
-                                                    </option>
-                                                    <option value="Ms." {{ $salutation == 'Ms.' ? 'selected' : '' }}>Ms.
-                                                    </option>
-                                                    <option value="Mrs." {{ $salutation == 'Mrs.' ? 'selected' : '' }}>
-                                                        Mrs.</option>
-                                                    <option value="Dr." {{ $salutation == 'Dr.' ? 'selected' : '' }}>Dr.
-                                                    </option>
-                                                    <option value="Prof." {{ $salutation == 'Prof.' ? 'selected' : '' }}>
-                                                        Prof.</option>
+                                                    @foreach (['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'Prof.'] as $option)
+                                                        <option value="{{ $option }}" {{ $salutation == $option ? 'selected' : '' }}>{{ $option }}</option>
+                                                    @endforeach
                                                 </select>
                                             </div>
                                         </div>
@@ -132,7 +113,7 @@
                                     <div class="input-group input-group-dynamic {{ $cssClass }}">
                                         <label class="form-label">Email Address</label>
                                         <input class="form-control" type="email" name="email"
-                                            value="{{ $exhibitorInfo->email }}" required>
+                                            value="{{ optional($exhibitorInfo)->email }}" required>
                                     </div>
                                 </div>
                             </div>
@@ -142,22 +123,18 @@
                                     <div class="input-group input-group-dynamic is-filled {{ $cssClass }}">
                                         <label class="form-label">Phone Number</label>
                                         <input id="phone" class="form-control" type="tel" name="phone"
-                                            value="{{ $exhibitorInfo->phone }}" required>
+                                            value="{{ optional($exhibitorInfo)->phone }}" required>
                                     </div>
                                 </div>
-
-
-
-
 
                                 <div class="col-sm-6 mt-3 mt-sm-0">
                                     <div class="input-group input-group-dynamic is-filled {{ $cssClass }}">
                                         <label class="form-label">Upload Logo</label>
                                         <input class="form-control" type="file" name="logo" accept="image/*"
-                                            @if (!empty($exhibitorInfo->logo)) @else required @endif>
-                                        @if (!empty($exhibitorInfo->logo))
+                                            @if (empty(optional($exhibitorInfo)->logo)) required @endif>
+                                        @if (!empty(optional($exhibitorInfo)->logo))
                                             <div class="mt-2">
-                                                <img src="{{ asset('storage/' . $exhibitorInfo->logo) }}"
+                                                <img src="{{ asset('storage/' . optional($exhibitorInfo)->logo) }}"
                                                     alt="Uploaded Logo" style="max-height: 60px;">
                                                 <small class="text-success d-block">Logo already uploaded.</small>
                                             </div>
@@ -171,12 +148,11 @@
                                     <label class="form-label">Company Description</label>
                                     <div class="input-group input-group-dynamic is-filled">
                                         <textarea class="form-control" name="description" id="description" rows="3" maxlength="750" required
-                                            oninput="updateCharCount()"> {{ $exhibitorInfo->description }}</textarea>
+                                            oninput="updateCharCount()">{{ optional($exhibitorInfo)->description }}</textarea>
                                     </div>
                                     <small id="charCount" class="text-muted">0 / 750 characters</small>
                                 </div>
                             </div>
-
 
                             <hr class="my-4">
 
@@ -185,14 +161,14 @@
                                     <div class="input-group input-group-dynamic {{ $cssClass }} ">
                                         <label class="form-label">LinkedIn</label>
                                         <input class="form-control" type="url" name="linkedin"
-                                            value="{{ $exhibitorInfo->linkedin }}">
+                                            value="{{ optional($exhibitorInfo)->linkedin }}">
                                     </div>
                                 </div>
                                 <div class="col-sm-6 mt-3 mt-sm-0">
                                     <div class="input-group input-group-dynamic {{ $cssClass }}">
                                         <label class="form-label">Instagram</label>
                                         <input class="form-control" type="url" name="instagram"
-                                            value="{{ $exhibitorInfo->instagram }}">
+                                            value="{{ optional($exhibitorInfo)->instagram }}">
                                     </div>
                                 </div>
                             </div>
@@ -202,14 +178,14 @@
                                     <div class="input-group input-group-dynamic {{ $cssClass }}">
                                         <label class="form-label">Facebook</label>
                                         <input class="form-control" type="url" name="facebook"
-                                            value="{{ $exhibitorInfo->facebook }}">
+                                            value="{{ optional($exhibitorInfo)->facebook }}">
                                     </div>
                                 </div>
                                 <div class="col-sm-6 mt-3 mt-sm-0">
                                     <div class="input-group input-group-dynamic {{ $cssClass }}">
                                         <label class="form-label">YouTube</label>
                                         <input class="form-control" type="url" name="youtube"
-                                            value="{{ $exhibitorInfo->youtube }}">
+                                            value="{{ optional($exhibitorInfo)->youtube }}">
                                     </div>
                                 </div>
                             </div>
@@ -218,7 +194,6 @@
                                 <button class="btn bg-gradient-dark ms-auto mb-0" type="submit"
                                     title="Save">Submit</button>
                             </div>
-
                         </div>
                     </div>
                 </form>
@@ -247,14 +222,13 @@
                 textarea.setCustomValidity('');
             }
         }
+
         document.addEventListener('DOMContentLoaded', function() {
             const textarea = document.getElementById('description');
             textarea.addEventListener('input', validateDescriptionLength);
             validateDescriptionLength();
         });
     </script>
-
-
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -276,9 +250,8 @@
                     nationalMode: false,
                 });
 
-                // Set number if available
-                @if (!empty($exhibitorInfo->phone))
-                    const serverPhone = "{{ $exhibitorInfo->phone }}";
+                @if (!empty(optional($exhibitorInfo)->phone))
+                    const serverPhone = "{{ optional($exhibitorInfo)->phone }}";
                     if (serverPhone.startsWith('+')) {
                         iti.setNumber(serverPhone);
                     } else {
@@ -287,24 +260,16 @@
                 @endif
             }
 
-            if (window.intlTelInput) {
-                initializePhoneInput();
-            } else {
-                phoneInput.addEventListener('load', initializePhoneInput);
-            }
+            initializePhoneInput();
 
             form.addEventListener('submit', function(e) {
                 const fullNumber = iti.getNumber();
-                console.log('Full number:', fullNumber);
-
                 if (!fullNumber || !fullNumber.startsWith('+')) {
                     e.preventDefault();
                     alert('Please enter a valid phone number with country code.');
                     phoneInput.focus();
                     return false;
                 }
-
-                // Set the final phone value in +<country_code><number> format
                 phoneInput.value = fullNumber;
             });
         });

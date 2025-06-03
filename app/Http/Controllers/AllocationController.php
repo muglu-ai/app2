@@ -14,47 +14,119 @@ use Illuminate\Support\Facades\DB;
 class AllocationController extends Controller
 {
     //
-    public function showAllAllocations()
+    public function showAllAllocations(Request $request)
     {
         $slug = "Complimentary Ticket Allocations";
-        $applications = Application::with(['exhibitionParticipant.exhibitionParticipantPasses.ticketCategory'])
-            ->whereHas('exhibitionParticipant')
-            ->get()
-            ->map(function ($application) {
-                $participant = $application->exhibitionParticipant;
-                $badge_allocations = [];
 
-                if ($participant) {
-                    foreach ($participant->exhibitionParticipantPasses as $pass) {
-                        $badge_allocations[] = [
-                            'ticket_type' => $pass->ticketCategory->ticket_type ?? 'Unknown',
-                            'badge_count' => $pass->badge_count,
-                        ];
+        $search = $request->input('search');
+
+        $ticketCategories = TicketCategory::all();
+        $ticketTypes = $ticketCategories->pluck('ticket_type', 'id'); // [id => 'VIP']
+
+        $query = Application::with(['exhibitionParticipant.exhibitionParticipantPasses.ticketCategory'])
+            ->whereHas('exhibitionParticipant');
+
+        if ($search) {
+            $query->where('company_name', 'LIKE', "%{$search}%");
+        }
+
+        $applications = $query->paginate(10)->through(function ($application) use ($ticketTypes) {
+            $participant = $application->exhibitionParticipant;
+            $badgeCounts = [];
+            $usedCounts = [];
+
+            foreach ($ticketTypes as $catId => $name) {
+                $badgeCounts[$catId] = 0;
+                $usedCounts[$catId] = 0;
+            }
+
+            if ($participant) {
+                foreach ($participant->exhibitionParticipantPasses as $pass) {
+                    $categoryId = $pass->ticket_category_id;
+
+                    if (isset($badgeCounts[$categoryId])) {
+                        $badgeCounts[$categoryId] += $pass->badge_count;
+
+                        $usedCounts[$categoryId] = DB::table('complimentary_delegates')
+                            ->where('exhibition_participant_id', $participant->id)
+                            ->where('ticket_category_id', $categoryId)
+                            ->count();
                     }
                 }
+            }
 
-                if (empty($badge_allocations)) {
-                    return null; // Exclude applications with no badge allocations
-                }
+            return (object)[
+                'id' => $application->id,
+                'company_name' => $application->company_name,
+                'exhibition_participant_id' => $participant?->id,
+                'badges' => $badgeCounts,
+                'used' => $usedCounts,
+            ];
+        });
 
-                return (object)[
-                    'id' => $application->id,
-                    'company_name' => $application->company_name,
-                    'badge_allocations' => $badge_allocations,
-                ];
-            })
-            ->filter() // Remove null values
-            ->values(); // Reindex the array
-
-        $badgeAllocations = $applications;
-        //merge ticket_type and badge_count into a badgeAllocations array
-        // $badgeAllocations = $applications->pluck('exhibitionParticipant.exhibitionParticipantPasses')->flatten(1)
-
-
-        // dd($applications);
-
-        return view('exhibitor.allocations', compact('applications', 'slug', 'badgeAllocations'));
+        return view('exhibitor.allocations', compact('applications', 'slug', 'ticketTypes', 'search'));
     }
+
+
+    public function updateAllocations(Request $request, $applicationId)
+    {
+        $badgeAllocations = $request->input('badge_allocations', []);
+
+        $application = Application::with('exhibitionParticipant')->findOrFail($applicationId);
+        $participant = $application->exhibitionParticipant;
+
+        if (!$participant) {
+            return back()->with('error', 'Exhibition participant not found.');
+        }
+
+        foreach ($badgeAllocations as $ticketCategoryId => $count) {
+            $pass = ExhibitionParticipantPass::where('exhibition_participant_id', $participant->id)
+                ->where('ticket_category_id', $ticketCategoryId)
+                ->first();
+
+            if ($pass) {
+                $pass->badge_count = $count;
+                $pass->save();
+            } else {
+                // Optionally create a new one
+                ExhibitionParticipantPass::create([
+                    'exhibition_participant_id' => $participant->id,
+                    'ticket_category_id' => $ticketCategoryId,
+                    'badge_count' => $count,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Badge allocations updated successfully.');
+    }
+
+
+    public function readAllocations($applicationId)
+    {
+        $application = Application::with('exhibitionParticipant')->findOrFail($applicationId);
+        $participant = $application->exhibitionParticipant;
+
+        if (!$participant) {
+            return back()->with('error', 'No participant found.');
+        }
+
+        // Group delegates by ticket_category_id
+        $delegates = DB::table('complimentary_delegates')
+            ->where('exhibition_participant_id', $participant->id)
+            ->get()
+            ->groupBy('ticket_category_id');
+
+        // Get ticket type names
+        $categories = TicketCategory::whereIn('id', $delegates->keys())->pluck('ticket_type', 'id');
+
+        return view('exhibitor.read-allocations', compact('application', 'delegates', 'categories'));
+    }
+
+
+
+
+
+
 
     /**
      * Add a new badge category (ExhibitionParticipantPass) for an application.

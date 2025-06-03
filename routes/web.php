@@ -87,7 +87,7 @@ Route::get('testtt', [PaymentGatewayController::class, 'ccAvenueTestSuccess']);
 
 // Routes with CheckUser middleware
 Route::middleware([CheckUser::class])->group(function () {
-    Route::get('/exhibitor-info', [ExhibitorInfoController::class, 'showForm'])->name('exhibitor.info');
+    Route::get('exhibitor-directory', [ExhibitorInfoController::class, 'showForm'])->name('exhibitor.info');
     Route::post('/exhibitor-info', [ExhibitorInfoController::class, 'storeExhibitor'])->name('exhibitor.info.submit');
     Route::get('/product-add', [ExhibitorInfoController::class, 'showProductForm'])->name('product.add');
     Route::post('/product-add', [ExhibitorInfoController::class, 'productStore'])->name('product.store');
@@ -174,6 +174,10 @@ Route::middleware([Auth::class])->group(function () {
     Route::get('export_approved_applications', [ExportController::class, 'export_approved_applications'])->name('export.app.applications');
     Route::get('export_sponsorships', [ExportController::class, 'export_sponsorship_applications'])->name('export.sponsorships');
     Route::get('export_requirements', [ExportController::class, 'extra_requirements_export'])->name('export.requirements');
+    Route::get('/allocations', [AllocationController::class, 'showAllAllocations'])->name('allocations.list');
+    Route::post('/allocations/update/{id}', [AllocationController::class, 'updateAllocations'])->name('allocations.update');
+    Route::get('/allocations/read/{id}', [AllocationController::class, 'readAllocations'])->name('allocations.read');
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
@@ -202,7 +206,6 @@ Route::post('/invite/submit', [ExhibitorController::class, 'inviteeSubmitted'])-
 Route::get('/badge/{applicationId}/{ticketType}', [AllocationController::class, 'readBadge'])->name('badge.read');
 Route::get('/badge/{applicationId}/{ticketType}/edit', [AllocationController::class, 'editBadge'])->name('badge.edit');
 Route::post('/badge/add', [AllocationController::class, 'addBadgeCategory'])->name('badge.add');
-Route::get('/allocations', [AllocationController::class, 'showAllAllocations'])->name('allocations.list');
 Route::get('/sponsor-items', [SponsorController::class, 'index']);
 Route::get('/co-exhibitors', [CoExhibitorController::class, 'index'])->name('co_exhibitors')->middleware(Auth::class);
 Route::post('/co-exhibitor/approve/{id}', [CoExhibitorController::class, 'approve'])->name('co_exhibitor.approve')->middleware(Auth::class);

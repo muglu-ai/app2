@@ -2,70 +2,100 @@
 @section('title', $slug)
 @section('content')
 
- <div class="container-fluid py-4">
+    <script>
+function enableEdit(id) {
+    const row = document.getElementById('row-' + id);
+    row.querySelectorAll('.display-mode').forEach(el => el.classList.add('d-none'));
+    row.querySelectorAll('.edit-mode').forEach(el => el.classList.remove('d-none'));
+}
+
+function cancelEdit(id) {
+    const row = document.getElementById('row-' + id);
+    row.querySelectorAll('.edit-mode').forEach(el => el.classList.add('d-none'));
+    row.querySelectorAll('.display-mode').forEach(el => el.classList.remove('d-none'));
+}
+</script>
+
+
+
+    <div class="container-fluid py-4">
         <div class="row mb-4">
             <div class="col">
-                <h3 class="mb-0 h4 font-weight-bolder">Complimentary Badge </h3>
+                <h3 class="mb-0 h4 fw-bold">Complimentary Badge</h3>
             </div>
+        </div>
+        <form method="GET" action="{{ route('allocations.list') }}" class="mb-3">
+            <div class="input-group" style="max-width: 400px;">
+                <input type="text" name="search" class="form-control" placeholder="Search by company name" value="{{ $search }}">
+                <button class="btn btn-outline-primary" type="submit">Search</button>
             </div>
+        </form>
         <div class="row">
-           <div class="container mt-4">
-    <div class="alert alert-danger text-white fw-bold">
-        Company: {{ $companyName ?? 'N/A' }}
+            <div class="container mt-4">
+                <div class="table-responsive">
+                   <table class="table table-bordered table-sm align-middle">
+    <thead class="table-primary text-center">
+        <tr>
+            <th>Company Name</th>
+            @foreach($ticketTypes as $id => $type)
+                <th>{{ $type }}</th>
+            @endforeach
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($applications as $app)
+            <tr id="row-{{ $app->id }}">
+                <td class="fw-semibold">{{ $app->company_name }}</td>
+
+                @foreach($ticketTypes as $id => $type)
+                    <td class="text-center">
+                        <span class="display-mode">{{ $app->badges[$id] ?? 0 }}</span>
+                        <span class="edit-mode d-none">
+                            <input type="number" name="badge_allocations[{{ $id }}]"
+                                value="{{ $app->badges[$id] ?? 0 }}"
+                                min="0" class="form-control form-control-sm" style="width: 80px;" />
+                        </span>
+                        <br>
+                        <small class="text-muted">{{ $app->used[$id] ?? 0 }} used</small>
+                    </td>
+                @endforeach
+
+                <td class="text-end">
+                    <!-- Display Mode Buttons -->
+                    <div class="display-mode">
+                        <button class="btn btn-sm btn-outline-warning"
+                            onclick="enableEdit({{ $app->id }})">Edit</button>
+                        <a href="{{ route('allocations.read', $app->id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                    </div>
+
+                    <!-- Edit Mode Buttons -->
+                    <form method="POST" action="{{ route('allocations.update', $app->id) }}" class="edit-mode d-none">
+                        @csrf
+                        @method('POST')
+                        <button type="submit" class="btn btn-sm btn-outline-success">Save</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cancelEdit({{ $app->id }})">Cancel</button>
+                    </form>
+                </td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        Showing {{ $applications->firstItem() }} to {{ $applications->lastItem() }} of {{ $applications->total() }} entries
     </div>
-
-    <div class="card">
-        <div class="card-header bg-gradient-light fw-bold">
-            Complimentary Badge Allocations
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Ticket Type</th>
-                            <th>Badge Count</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($badgeAllocations as $badge)
-                        <tr>
-                            <td>{{ $badge->ticket_type }}</td>
-                            <td>{{ $badge->count }}</td>
-                            <td class="text-end">
-                                <a href="{{ route('badge.read', $badge->id) }}" class="btn btn-sm btn-outline-primary">Read</a>
-                                <a href="{{ route('badge.edit', $badge->id) }}" class="btn btn-sm btn-outline-warning">Edit</a>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="card-footer bg-white">
-            <form action="{{ route('badge.add') }}" method="POST" class="row g-2 align-items-center">
-                @csrf
-                <div class="col-md-5">
-                    <select name="ticket_type" class="form-select" required>
-                        <option value="">Select Category</option>
-                        @foreach($availableCategories as $category)
-                        <option value="{{ $category }}">{{ $category }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="number" name="badge_count" class="form-control" placeholder="Badge Count" required min="1">
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-success w-100" type="submit">Add</button>
-                </div>
-            </form>
-        </div>
+    <div>
+        {{ $applications->withQueryString()->links() }}
     </div>
 </div>
 
+
+
+                </div>
+            </div>
         </div>
     </div>
+
+
 @endsection

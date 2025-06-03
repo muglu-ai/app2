@@ -79,12 +79,11 @@ class ExhibitorInfoController extends Controller
     //function application id
     public function getApplicationId()
     {
-        return Application::where('user_id', Auth::id())
-            ->where('submission_status', 'approved')
-            ->whereHas('invoices.payments', function ($query) {
-                $query->where('status', 'successful');
-            })
-            ->value('id');
+        return Application::where('user_id', auth()->user()->id)
+            ->whereIn('submission_status', ['approved', 'submitted'])
+            ->whereHas('invoice', function ($query) {
+                $query->where('type', 'Stall Booking')->where('payment_status', 'paid');
+            })->value('id');
     }
 
 
@@ -104,23 +103,22 @@ class ExhibitorInfoController extends Controller
         // }
 
         // get the application id from application table where user_id is logged in user id
-        $applicationId = Application::where('user_id', Auth::id())
-            ->where('submission_status', 'approved')
-            ->whereHas('invoices.payments', function ($query) {
-                $query->where('status', 'successful');
-            })
-            ->value('id');
-
-        // dd($applicationId);
+        $applicationId = Application::where('user_id', auth()->user()->id)
+            ->whereIn('submission_status', ['approved', 'submitted'])
+            ->whereHas('invoice', function ($query) {
+                $query->where('type', 'Stall Booking')->where('payment_status', 'paid');
+            })->value('id');
 
 
 
         // check if the user is
         $application = Application::findOrFail($applicationId);
         $slug = "Exhibitor Directory Information";
-
+        // dd($application->application_id);
         //find the exhibitor info from exhibitor_info table where application_id is application id
-        $exhibitorInfo = ExhibitorInfo::where('application_id', $applicationId)->first();
+        $exhibitorInfo = ExhibitorInfo::where('application_id', $application->id)->first();
+
+        // dd($exhibitorInfo);
         return view('exhibitor_info.form', compact('application', 'slug', 'exhibitorInfo'));
     }
 

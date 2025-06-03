@@ -68,7 +68,23 @@
                 </ul>
 
             </li>
+
             <li class="nav-item">
+                <ul class="nav ">
+                    <li class="nav-item">
+                        @php
+                            $active2 = request()->routeIs('exhibitor.info') ? 'active' : '';
+                        @endphp
+                        <a class="nav-link text-dark {{ $active2 }}" href="{{ route('exhibitor.info') }}">
+                            <i class="fa-solid fa-address-book"></i>
+                            <span class="sidenav-normal ms-1 ps-1"> Exhibitor Directory </span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+
+            {{-- <li class="nav-item">
                 <ul class="nav ">
                     <li class="nav-item">
                         @php
@@ -81,7 +97,7 @@
                     </li>
                 </ul>
 
-            </li>
+            </li> --}}
             <li class="nav-item mt-3">
                 <h6 class="ps-3  ms-2 text-uppercase text-xs font-weight-bolder text-dark">Passes</h6>
             </li>
