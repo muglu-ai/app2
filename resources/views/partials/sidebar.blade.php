@@ -205,32 +205,18 @@
                 </a>
             </li> --}}
             <li class="nav-item">
-                <a data-bs-toggle="collapse" href="#registrationMenu" class="nav-link text-dark" aria-controls="registrationMenu" role="button" aria-expanded="false">
-                    <i class="fa-solid fa-address-card"></i>
-                    <span class="nav-link-text ms-1 ps-1 text-dark">Registration</span>
+                <a href="{{route('visitor.list')}}" class="nav-link text-dark " aria-controls="pagesExamples"
+                    role="button" aria-expanded="false">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span class="nav-link-text ms-1 ps-1 text-dark ">Visitors</span>
                 </a>
-                <div class="collapse" id="registrationMenu">
-                    <ul class="nav">
-                        <li class="nav-item">
-                            <a href="{{ route('allocations.list') }}" class="nav-link text-dark">
-                                <i class="fa-solid fa-id-badge"></i>
-                                <span class="nav-link-text ms-1 ps-1 text-dark">Complimentary Badge</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('visitor.list') }}" class="nav-link text-dark">
-                                <i class="fa-solid fa-users"></i>
-                                <span class="nav-link-text ms-1 ps-1 text-dark">Visitors</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('tickets.index') }}" class="nav-link text-dark">
-                                <i class="fa-solid fa-ticket"></i>
-                                <span class="nav-link-text ms-1 ps-1 text-dark">Delegates</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+            </li>
+            <li class="nav-item">
+                <a href="{{ route('tickets.index') }}" class="nav-link text-dark" aria-controls="pagesExamples"
+                    role="button" aria-expanded="false">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span class="nav-link-text ms-1 ps-1 text-dark">Delegates</span>
+                </a>
             </li>
             <li class="nav-item">
                 <a href="{{ route('tickets.index') }}" class="nav-link text-dark" aria-controls="pagesExamples"

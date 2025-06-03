@@ -18,7 +18,6 @@ use App\Mail\SponsorInvoiceMail;
 class ExhibitorInfoController extends Controller
 {
 
-
     //construct function
     /*public function __construct()
     {
